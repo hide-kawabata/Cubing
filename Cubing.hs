@@ -202,6 +202,7 @@ expandOp (x:xs)
   | x == Z'2 = Z:Z:(expandOp xs)
   | otherwise = x:(expandOp xs)
 
+revOp :: Op -> Op
 revOp U = U'
 revOp U' = U
 revOp L = L'
@@ -242,15 +243,26 @@ optimizeOp (x:xs) = x:(optimizeOp xs)
 
 
 -- checker functions
+checkRY :: Op -> Q -> Bool
 checkRY tc q = sel (r q) 2 == rotColor tc Red && sel (y q) 6 == rotColor tc Yellow
+
+checkYGR :: Op -> Q -> Bool
 checkYGR tc q = sel (r q) 1 == rotColor tc Red &&
                 sel (g q) 3 == rotColor tc Green &&
                 sel (y q) 7 == rotColor tc Yellow
+
+checkGR :: Op -> Q -> Bool
 checkGR tc q = sel (g q) 4 == rotColor tc Green && sel (r q) 8 == rotColor tc Red
-checkZero q = sel (w q) 2 /= White && sel (w q) 4 /= White &&
-              sel (w q) 6 /= White && sel (w q) 8 /= White
+
+checkOne :: Q -> Bool
+checkOne q = sel (w q) 2 /= White && sel (w q) 4 /= White &&
+             sel (w q) 6 /= White && sel (w q) 8 /= White
+
+checkFive :: Q -> Bool
 checkFive q = sel (w q) 2 == White && sel (w q) 4 == White &&
               sel (w q) 6 == White && sel (w q) 8 == White
+
+checkPat :: Q -> Bool
 checkPat q
   | sel (r q) 5 == White && sel (o q) 7 == White &&
     sel (g q) 5 == White && sel (g q) 7 == White = True
@@ -268,6 +280,7 @@ checkPat q
     sel (w q) 5 == White && sel (o q) 5 == White = True
   | otherwise = False
 
+checkNine :: Q -> Bool
 checkNine q
   | sel (r q) 6 == sel (r q) 7 &&
     sel (g q) 5 == sel (g q) 7 &&
@@ -324,6 +337,7 @@ checkNine q
 
   | otherwise = False
 
+checkU :: Q -> Bool
 checkU q
   | sel (r q) 6 == Red = True
   | otherwise = False
@@ -347,12 +361,12 @@ nextSeq q ops
   | not $ checkGR Y2 (turn Y2 q) = cont $ [Y2] ++ setGR Y2 (turn Y2 q) ++ [Y2]
   | not $ checkGR Y' (turn Y' q) = cont $ [Y'] ++ setGR Y' (turn Y' q) ++ [Y]
 --
-  | checkZero q = cont $ zeroToThree N q
-  | not $ checkFive q = cont $ threeToFive N q
-  | checkPat q = cont $ fiveToNine N q
-  | checkPat (turn Y q) = cont $ [Y] ++ fiveToNine Y (turn Y q) ++ [Y']
-  | checkPat (turn Y2 q) = cont $ [Y2] ++ fiveToNine Y2 (turn Y2 q) ++ [Y2]
-  | checkPat (turn Y' q) = cont $ [Y'] ++ fiveToNine Y' (turn Y' q) ++ [Y]
+  | checkOne q = cont $ oneToThree q
+  | not $ checkFive q = cont $ threeToFive q
+  | checkPat q = cont $ fiveToNine q
+  | checkPat (turn Y q) = cont $ [Y] ++ fiveToNine (turn Y q) ++ [Y']
+  | checkPat (turn Y2 q) = cont $ [Y2] ++ fiveToNine (turn Y2 q) ++ [Y2]
+  | checkPat (turn Y' q) = cont $ [Y'] ++ fiveToNine (turn Y' q) ++ [Y]
 --
   | checkNine q = cont $ nineToFinish q
   | checkNine (turn Y q) = cont $ [Y] ++ nineToFinish (turn Y q) ++ [Y']
@@ -385,6 +399,7 @@ rotColor Y2 Orange = Red
 rotColor Y2 Green = Blue
 rotColor Y2 c = c
 
+setRY :: Op -> Q -> [Op]
 setRY tc q
   | sel (r q) 2 == rotColor tc Yellow &&
     sel (y q) 6 == rotColor tc Red = [F', D, R', D']
@@ -438,6 +453,7 @@ setRY tc q
 
   | otherwise = error "setRY"
 
+setYGR :: Op -> Q -> [Op]
 setYGR tc q
   | sel (r q) 1 == rotColor tc Yellow &&
     sel (g q) 3 == rotColor tc Red = [Y', R, U, R', U', R, U, R', Y]
@@ -495,6 +511,7 @@ setYGR tc q
 
   | otherwise = error "setYGR"
 
+setGR :: Op -> Q -> [Op]
 setGR tc q
   | sel (r q) 8 == rotColor tc Green &&
     sel (g q) 4 == rotColor tc Red = [U, F, U', F', U', L, U, L', U', F, U', F', U', L', U, L]
@@ -537,70 +554,74 @@ setGR tc q
   | otherwise = error "setGR"
 
 
-zeroToThree tc q
-  | sel (w q) 2 /= rotColor tc White &&
-    sel (w q) 4 /= rotColor tc White &&
-    sel (w q) 6 /= rotColor tc White &&
-    sel (w q) 8 /= rotColor tc White = [F, R, U, R', U', F']
+oneToThree :: Q -> [Op]
+oneToThree q
+  | sel (w q) 2 /= White &&
+    sel (w q) 4 /= White &&
+    sel (w q) 6 /= White &&
+    sel (w q) 8 /= White = [F, R, U, R', U', F']
   | otherwise = []
 
-threeToFive tc q
-  | sel (w q) 2 == rotColor tc White &&
-    sel (w q) 4 == rotColor tc White &&
-    sel (w q) 6 /= rotColor tc White &&
-    sel (w q) 8 /= rotColor tc White = [B, U, L, U', L', B']
-  | sel (w q) 2 /= rotColor tc White &&
-    sel (w q) 4 == rotColor tc White &&
-    sel (w q) 6 == rotColor tc White &&
-    sel (w q) 8 /= rotColor tc White = [U, B, U, L, U', L', B']
-  | sel (w q) 2 /= rotColor tc White &&
-    sel (w q) 4 /= rotColor tc White &&
-    sel (w q) 6 == rotColor tc White &&
-    sel (w q) 8 == rotColor tc White = [U, U, B, U, L, U', L', B']
-  | sel (w q) 2 == rotColor tc White &&
-    sel (w q) 4 /= rotColor tc White &&
-    sel (w q) 6 /= rotColor tc White &&
-    sel (w q) 8 == rotColor tc White = [U', B, U, L, U', L', B']
-  | sel (w q) 2 /= rotColor tc White &&
-    sel (w q) 4 == rotColor tc White &&
-    sel (w q) 6 /= rotColor tc White &&
-    sel (w q) 8 == rotColor tc White = [F, R, U, R', U', F']
-  | sel (w q) 2 == rotColor tc White &&
-    sel (w q) 4 /= rotColor tc White &&
-    sel (w q) 6 == rotColor tc White &&
-    sel (w q) 8 /= rotColor tc White = [U, F, R, U, R', U', F']
+threeToFive :: Q -> [Op]
+threeToFive q
+  | sel (w q) 2 == White &&
+    sel (w q) 4 == White &&
+    sel (w q) 6 /= White &&
+    sel (w q) 8 /= White = [B, U, L, U', L', B']
+  | sel (w q) 2 /= White &&
+    sel (w q) 4 == White &&
+    sel (w q) 6 == White &&
+    sel (w q) 8 /= White = [U, B, U, L, U', L', B']
+  | sel (w q) 2 /= White &&
+    sel (w q) 4 /= White &&
+    sel (w q) 6 == White &&
+    sel (w q) 8 == White = [U, U, B, U, L, U', L', B']
+  | sel (w q) 2 == White &&
+    sel (w q) 4 /= White &&
+    sel (w q) 6 /= White &&
+    sel (w q) 8 == White = [U', B, U, L, U', L', B']
+  | sel (w q) 2 /= White &&
+    sel (w q) 4 == White &&
+    sel (w q) 6 /= White &&
+    sel (w q) 8 == White = [F, R, U, R', U', F']
+  | sel (w q) 2 == White &&
+    sel (w q) 4 /= White &&
+    sel (w q) 6 == White &&
+    sel (w q) 8 /= White = [U, F, R, U, R', U', F']
   | otherwise = []
 
-fiveToNine tc q
-  | sel (r q) 5 == rotColor tc White &&
-    sel (o q) 7 == rotColor tc White &&
-    sel (g q) 5 == rotColor tc White &&
-    sel (g q) 7 == rotColor tc White = [R, U, U, R', R', U', R, R, U', R', R', U, U, R]
-  | sel (w q) 1 == rotColor tc White &&
-    sel (w q) 3 == rotColor tc White &&
-    sel (o q) 5 == rotColor tc White &&
-    sel (o q) 7 == rotColor tc White = [R, R, D', R, U, U, R', D, R, U, U, R]
-  | sel (r q) 5 == rotColor tc White &&
-    sel (b q) 5 == rotColor tc White &&
-    sel (o q) 5 == rotColor tc White &&
-    sel (w q) 1 == rotColor tc White = [R, U, R', U, R, U', U', R']
-  | sel (r q) 7 == rotColor tc White &&
-    sel (b q) 7 == rotColor tc White &&
-    sel (g q) 7 == rotColor tc White &&
-    sel (w q) 5 == rotColor tc White = [R, U', U', R', U', R, U', R]
-  | sel (r q) 7 == rotColor tc White &&
-    sel (r q) 5 == rotColor tc White &&
-    sel (o q) 7 == rotColor tc White &&
-    sel (o q) 5 == rotColor tc White = [R, U', U', R', U', R, U, R', U', R, U', R']
-  | sel (r q) 7 == rotColor tc White &&
-    sel (b q) 5 == rotColor tc White &&
-    sel (w q) 3 == rotColor tc White &&
-    sel (w q) 7 == rotColor tc White = [L, F', F', R', R', D, R, D', R, F', F', L']
-  | sel (r q) 7 == rotColor tc White &&
-    sel (w q) 3 == rotColor tc White &&
-    sel (w q) 5 == rotColor tc White &&
-    sel (o q) 5 == rotColor tc White = [L, F, R', F', L', F, R, F']
+fiveToNine :: Q -> [Op]
+fiveToNine q
+  | sel (r q) 5 == White &&
+    sel (o q) 7 == White &&
+    sel (g q) 5 == White &&
+    sel (g q) 7 == White = [R, U, U, R', R', U', R, R, U', R', R', U, U, R]
+  | sel (w q) 1 == White &&
+    sel (w q) 3 == White &&
+    sel (o q) 5 == White &&
+    sel (o q) 7 == White = [R, R, D', R, U, U, R', D, R, U, U, R]
+  | sel (r q) 5 == White &&
+    sel (b q) 5 == White &&
+    sel (o q) 5 == White &&
+    sel (w q) 1 == White = [R, U, R', U, R, U', U', R']
+  | sel (r q) 7 == White &&
+    sel (b q) 7 == White &&
+    sel (g q) 7 == White &&
+    sel (w q) 5 == White = [R, U', U', R', U', R, U', R]
+  | sel (r q) 7 == White &&
+    sel (r q) 5 == White &&
+    sel (o q) 7 == White &&
+    sel (o q) 5 == White = [R, U', U', R', U', R, U, R', U', R, U', R']
+  | sel (r q) 7 == White &&
+    sel (b q) 5 == White &&
+    sel (w q) 3 == White &&
+    sel (w q) 7 == White = [L, F', F', R', R', D, R, D', R, F', F', L']
+  | sel (r q) 7 == White &&
+    sel (w q) 3 == White &&
+    sel (w q) 5 == White &&
+    sel (o q) 5 == White = [L, F, R', F', L', F, R, F']
 
+nineToFinish :: Q -> [Op]
 nineToFinish q
   | sel (r q) 6 == sel (r q) 7 &&
     sel (g q) 5 == sel (g q) 7 &&
