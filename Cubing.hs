@@ -1,10 +1,12 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-
-  Rubik's Cube Solver
+{----------------------------------------------------------------
+
+  A Rubik's Cube Solver
 
   Copyright (C) 2018 Hideyuki Kawabata
 
-  Example
+  This solver is based on the CFOP method without F2L.
+
+  Usage:
 
   - using GHCI:
    (a) input: a scramble
@@ -12,7 +14,7 @@
     ...
 
    (b) input: a scrambled pattern
-    *Cubing> solve_check_pos "OBOWBWYW, BRWYBOWW, ROROWRYG, BBYBGORY, GROBGGOY, RRYGGYWG"
+    *Cubing> solve_check_pat "OBOWBWYW, BRWYBOWW, ROROWRYG, BBYBGORY, GROBGGOY, RRYGGYWG"
     ...
 
     Note: the above input string corresponds to the following pattern:
@@ -37,12 +39,14 @@
    or
 
    (b)
-    ./Cubing 
+    $ ./Cubing 
     Input a scrambled pattern:
     OBOWBWYW, BRWYBOWW, ROROWRYG, BBYBGORY, GROBGGOY, RRYGGYWG
     ...
 
--}
+-----------------------------------------------------------------}
+
+{-# LANGUAGE ScopedTypeVariables #-}
 
 --module Cubing where
 
@@ -454,8 +458,10 @@ checkU :: Q -> Bool
 checkU q = q == goal
 
 -- solver functions
-nextSeq :: Q -> [Op] -> [Op]
-nextSeq q ops
+nextSeq :: Q -> Int -> [Op] -> [Op]
+nextSeq q step ops
+  | step > 30 = throw $ CouldNotSolve "nextSeq (no termination)"
+--
   | checkRY N q = cont $ setRY N q
   | checkRY Y (turn Y q) = cont $ [Y] ++ setRY Y (turn Y q) ++ [Y']
   | checkRY Y2 (turn Y2 q) = cont $ [Y2] ++ setRY Y2 (turn Y2 q) ++ [Y2] 
@@ -489,7 +495,7 @@ nextSeq q ops
   | checkU (turn U' q) = optimizeOp $ ops ++ [U']
 --
   | otherwise = throw $ CouldNotSolve "nextSeq"
-  where cont ops' = nextSeq (applySeq ops' q) (ops ++ ops')
+  where cont ops' = nextSeq (applySeq ops' q) (step + 1) (ops ++ ops')
 
 rotc :: Op -> Color -> Color
 rotc N c = c
@@ -713,7 +719,7 @@ nineToFinish q
 
 -- solver interfaces
 solve :: String -> [Op]
-solve str = nextSeq (applySeq (fromString str []) goal) []
+solve str = nextSeq (applySeq (fromString str []) goal) 0 []
 
 solve_check :: String -> IO ()
 solve_check str = do
@@ -729,19 +735,20 @@ solve_check str = do
   putStrLn "Solved:"
   pr $ applySeq outs q_start
 
-solve_check_pos, solve_check_pos' :: String -> IO ()
-solve_check_pos' str = do
+solve_check_pat, solve_check_pat' :: String -> IO ()
+solve_check_pat' str = do
   let q_start = fromStringPos str
-  let outs = nextSeq q_start []
+  let outs = nextSeq q_start 0 []
   putStrLn "Scrambled:"
   pr $ q_start
   putStrLn "Solution:"
   putStrLn $ show outs
   putStrLn "Solved:"
   pr $ applySeq outs q_start
-solve_check_pos str =
-  catch (solve_check_pos' str) $
-  \(msg::CouldNotSolve) -> putStrLn $ show msg ++ ": Illegal configuration ?"
+solve_check_pat str =
+  catch (solve_check_pat' str) $
+  \(msg::CouldNotSolve) -> putStrLn $ show msg ++ 
+                           "\n... Illegal configuration ?"
 
 main :: IO ()
 main = do
@@ -752,4 +759,4 @@ main = do
 -}
   putStrLn $ "Input a scrambled pattern:"
   pat <- getLine
-  solve_check_pos pat
+  solve_check_pat pat
