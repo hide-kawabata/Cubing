@@ -6,7 +6,7 @@ Here is a solver based on the CFOP method without F2L.
 
 Usage:
 
-  - with GHCi:
+- with GHCi:
 
    (a) input: a scramble
 
@@ -22,9 +22,9 @@ Usage:
     ...
    ```
    
-    Note: the above input string corresponds to the following pattern:
+   Note: the above input string corresponds to the following pattern:
 
-   ```
+    ```
            YWB                            765         
            WWW                            8W4         
            OBO                            123         
@@ -34,9 +34,9 @@ Usage:
            WYG                            765         
            GYG                            8Y4         
            RRY                            123         
-   ```
+    ```
 
-  - stand alone execution: 
+- stand alone execution: 
 
    (a)
 
