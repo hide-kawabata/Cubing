@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
   Rubik's Cube Solver
 
@@ -6,17 +7,51 @@
   Example
 
   - using GHCI:
+   (a) input: a scramble
     *Cubing> solve_check "R  L'  U'  D2  F2  U'  F'  R  D'  U'  B2"
     ...
 
+   (b) input: a scrambled pattern
+    *Cubing> solve_check_pos "OBOWBWYW, BRWYBOWW, ROROWRYG, BBYBGORY, GROBGGOY, RRYGGYWG"
+    ...
+
+    Note: the above input string corresponds to the following pattern:
+
+           YWB                            765
+           WWW                            8W4
+           OBO                            123
+       OGG WOB YRW ROG                765 765 765 765
+       YGB WRY GBO YOB       <--->    8G4 8R4 8B4 8O4
+       GRO BRW ROR BBY                123 123 123 123
+           WYG                            765
+           GYG                            8Y4
+           RRY                            123
+
   - stand alone execution:
+   (a)
     $ ./Cubing
     Input a scramble:
     R  L'  U'  D2  F2  U'  F'  R  D'  U'  B2
     ...
+
+   or
+
+   (b)
+    ./Cubing 
+    Input a scrambled pattern:
+    OBOWBWYW, BRWYBOWW, ROROWRYG, BBYBGORY, GROBGGOY, RRYGGYWG
+    ...
+
 -}
 
 --module Cubing where
+
+import Data.List.Split
+import Control.Exception
+data CouldNotSolve = CouldNotSolve String
+  deriving (Show)
+instance Exception CouldNotSolve
+
 
 data Color = Red | White | Green | Blue | Orange | Yellow deriving (Eq)
 instance Show Color where
@@ -80,6 +115,36 @@ fromString (x:xs) acc
   | otherwise = error "fromString"
   where xs0 = xs!!0
         xs1 = xs!!1
+
+-- parser for configuration data
+-- eg. "WWWWWWWW, RRRRRRRR, BBBBBBBB, OOOOOOOO, GGGGGGGG, YYYYYYYY"
+fromStringPos :: String -> Q
+fromStringPos str = Q { w = l2t sw
+                      , r = l2t sr
+                      , b = l2t sb
+                      , o = l2t so
+                      , g = l2t sg
+                      , y = l2t sy
+                      }
+  where surlist = splitOn "," $ filter (\c -> c /= ' ') str
+        collist = map (map charToColor) surlist
+        sw = collist!!0
+        sr = collist!!1
+        sb = collist!!2
+        so = collist!!3
+        sg = collist!!4
+        sy = collist!!5
+        l2t l = (l!!0, l!!1, l!!2, l!!3, l!!4, l!!5, l!!6, l!!7)
+
+charToColor :: Char -> Color
+charToColor ch
+  | ch == 'W' = White
+  | ch == 'R' = Red
+  | ch == 'B' = Blue
+  | ch == 'O' = Orange
+  | ch == 'G' = Green
+  | ch == 'Y' = Yellow
+  | otherwise = error $ "charToColor : " ++ [ch]
 
 
 -- pretty printer
@@ -385,8 +450,8 @@ checkNine q
         (b5, b6, b7) = let sq = sel (b q) in (sq 5, sq 6, sq 7)
 
 checkU :: Q -> Bool
-checkU q = let sq = sel (r q) in sq 4 == sq 5
-
+--checkU q = let sq = sel (r q) in sq 4 == sq 5
+checkU q = q == goal
 
 -- solver functions
 nextSeq :: Q -> [Op] -> [Op]
@@ -423,7 +488,7 @@ nextSeq q ops
   | checkU (turn U2 q) = optimizeOp $ ops ++ [U2]
   | checkU (turn U' q) = optimizeOp $ ops ++ [U']
 --
-  | otherwise = error "nextSeq"
+  | otherwise = throw $ CouldNotSolve "nextSeq"
   where cont ops' = nextSeq (applySeq ops' q) (ops ++ ops')
 
 rotc :: Op -> Color -> Color
@@ -472,7 +537,7 @@ setRY tc q
   | sg 2 == yellow && sy 8 == red = [L', F']
   | sg 6 == red && sw 8 == yellow = [U', F, F]
   | sg 6 == yellow && sw 8 == red = [L, F', L']
-  | otherwise = error "setRY"
+  | otherwise = throw $ CouldNotSolve "setRY"
   where sr = sel (r q)
         sy = sel (y q)
         sb = sel (b q)
@@ -515,7 +580,7 @@ setYGR tc q
   | so 5 == yellow && sg 7 == red = [F, U', F']
   | so 5 == green && sg 7 == yellow = [U', F, U, F']
   | so 5 == red && sg 7 == green = [F, U, U, F', L', U', L]
-  | otherwise = error "setYGR"
+  | otherwise = throw $ CouldNotSolve "setYGR"
   where sr = sel (r q)
         sb = sel (b q)
         sg = sel (g q)
@@ -551,7 +616,7 @@ setGR tc q
 --
   | sg 6 == red && sw 8 == green = [U, U, L', U, L, U, F, U', F']
   | sg 6 == green && sw 8 == red = [U, F, U', F', U', L', U, L]
-  | otherwise = error "setGR"
+  | otherwise = throw $ CouldNotSolve "setGR"
   where sr = sel (r q)
         sg = sel (g q)
         sw = sel (w q)
@@ -571,7 +636,7 @@ threeToFive q
   | w8 == w2 && w8 /= w4 && w8 /= w6 = [U', B, U, L, U', L', B']
   | w4 == w8 && w4 /= w2 && w4 /= w6 = [F, R, U, R', U', F']
   | w2 == w6 && w2 /= w4 && w2 /= w8 = [U, F, R, U, R', U', F']
-  | otherwise = error "threeToFive"
+  | otherwise = throw $ CouldNotSolve "threeToFive"
   where (w2, w4, w6, w8) = let sq = sel (w q) in (sq 2, sq 4, sq 6, sq 8)
 
 fiveToNine :: Q -> [Op]
@@ -587,7 +652,7 @@ fiveToNine q
   | r7 == b5 && b5 == w3 && w3 == w7 = 
       [L, F', F', R', R', D, R, D', R, F', F', L']
   | r7 == w3 && w3 == w5 && w5 == o5 = [L, F, R', F', L', F, R, F']
-  | otherwise = error "fiveToNine"
+  | otherwise = throw $ CouldNotSolve "fiveToNine"
   where (r5, r7) = let sq = sel (r q) in (sq 5, sq 7)
         (o5, o7) = let sq = sel (o q) in (sq 5, sq 7)
         (g5, g7) = let sq = sel (g q) in (sq 5, sq 7)
@@ -639,7 +704,7 @@ nineToFinish q
       [R, B', R', F, R, B, R', F', R, B, R', F, R, B', R', F']
   | g5 == g6 && g6 == g7 && r7 == b5 && o5 == b7 =
       [R', U', F', R, U, R', U', R', F, R, R, U', R', U', R, U, R', U, R]
-  | otherwise = error "nineToFinish"
+  | otherwise = throw $ CouldNotSolve "nineToFinish"
   where (r5, r6, r7) = let sq = sel (r q) in (sq 5, sq 6, sq 7)
         (g5, g6, g7) = let sq = sel (g q) in (sq 5, sq 6, sq 7)
         (o5, o6, o7) = let sq = sel (o q) in (sq 5, sq 6, sq 7)
@@ -664,8 +729,27 @@ solve_check str = do
   putStrLn "Solved:"
   pr $ applySeq outs q_start
 
+solve_check_pos, solve_check_pos' :: String -> IO ()
+solve_check_pos' str = do
+  let q_start = fromStringPos str
+  let outs = nextSeq q_start []
+  putStrLn "Scrambled:"
+  pr $ q_start
+  putStrLn "Solution:"
+  putStrLn $ show outs
+  putStrLn "Solved:"
+  pr $ applySeq outs q_start
+solve_check_pos str =
+  catch (solve_check_pos' str) $
+  \(msg::CouldNotSolve) -> putStrLn $ show msg ++ ": Illegal configuration ?"
+
 main :: IO ()
 main = do
+{-
   putStrLn $ "Input a scramble:"
   ins <- getLine
   solve_check ins
+-}
+  putStrLn $ "Input a scrambled pattern:"
+  pat <- getLine
+  solve_check_pos pat
