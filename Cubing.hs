@@ -28,8 +28,9 @@ instance Show Color where
   show Yellow = "Y"
 
 data Op = R | R' | U | U' | B | B' | L | L' | F | F' | D | D' 
-  | Y | Y' | Z | Z' | N | M | M'
-  | Y2 | Y'2 | Z2 | Z'2 | R2 | R'2 | U2 | U'2 | B2 | B'2 | L2 | L'2 | F2 | F'2 | D2 | D'2
+        | Y | Y' | Z | Z' | N | M | M'
+        | Y2 | Y'2 | Z2 | Z'2 | R2 | R'2 | U2 | U'2 | B2 | B'2
+        | L2 | L'2 | F2 | F'2 | D2 | D'2
         deriving (Show, Eq, Read)
 
 type Surface = (Color, Color, Color, Color, Color, Color, Color, Color)
@@ -54,13 +55,13 @@ data Q = Q { w :: Surface
 
 -- goal configuration
 goal :: Q
-goal =  Q { w = (White, White, White, White, White, White, White, White)
-        , r = (Red, Red, Red, Red, Red, Red, Red, Red)
-        , b = (Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue)
-        , o = (Orange, Orange, Orange, Orange, Orange, Orange, Orange, Orange)
-        , g = (Green, Green, Green, Green, Green, Green, Green, Green)
-        , y = (Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow)
-        }
+goal = Q { w = (White, White, White, White, White, White, White, White)
+         , r = (Red, Red, Red, Red, Red, Red, Red, Red)
+         , b = (Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue)
+         , o = (Orange, Orange, Orange, Orange, Orange, Orange, Orange, Orange)
+         , g = (Green, Green, Green, Green, Green, Green, Green, Green)
+         , y = (Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow)
+         }
 
 -- simple parser
 fromString :: String -> [Op] -> [Op]
@@ -484,35 +485,35 @@ setRY tc q
 
 setYGR :: Op -> Q -> [Op]
 setYGR tc q
-  | sr 1 == yellow && sg 3 == red = [Y', R, U, R', U', R, U, R', Y]
+  | sr 1 == yellow && sg 3 == red = [F, U, F', U', F, U, F']
   | sr 1 == green && sg 3 == yellow = [L', U', L, U, L', U', L]
 --
   | sr 3 == yellow && sb 1 == green = [F', U', F, U, U, L', U', L]
-  | sr 3 == red && sb 1 == yellow = [R, U, R', Y', R, U, R', Y]
-  | sr 3 == green && sb 1 == red = [R, U, R', Y', U, R, U', R', Y]
+  | sr 3 == red && sb 1 == yellow = [R, U, R', F, U, F']
+  | sr 3 == green && sb 1 == red = [R, U, R', L', U', L]
 --
   | sr 5 == green && sb 7 == yellow = [L', U, L]
-  | sr 5 == yellow && sb 7 == red = [U, Y', U, R, U', R', Y]
+  | sr 5 == yellow && sb 7 == red = [U, L', U', L]
   | sr 5 == red && sb 7 == green = [R, U, U, R', F, U, F']
 --
-  | sr 7 == red && sg 5 == yellow = [Y', U, R, U', R', Y]
+  | sr 7 == red && sg 5 == yellow = [L', U', L]
   | sr 7 == green && sg 5 == red = [F, U, U, F', U', F, U, F']
-  | sr 7 == yellow && sg 5 == green = [Y', R, U, R', Y]
+  | sr 7 == yellow && sg 5 == green = [F, U, F']
 --
   | sb 3 == green && so 1 == red = [R', U', U', R, F, U, F']
   | sb 3 == yellow && so 1 == green = [R', U', R, U', L', U', L]
-  | sb 3 == red && so 1 == yellow = [Y, R, U, R', U, Y2, R, U, R', Y]
+  | sb 3 == red && so 1 == yellow = [B, U, B', U, F, U, F']
 --
-  | sb 5 == green && so 7 == yellow = [U, U, Y', R, U, R', Y]
+  | sb 5 == green && so 7 == yellow = [U, U, F, U, F']
   | sb 5 == red && so 7 == green = [B, U, U, B', U, F, U, F']
-  | sb 5 == yellow && so 7 == red = [U, U, Y', U, R, U', R', Y]
+  | sb 5 == yellow && so 7 == red = [U, U, L', U', L]
 --
   | so 3 == red && sg 1 == yellow = [L, U, L', U, U, F, U, F']
   | so 3 == yellow && sg 1 == green = [B', U', B, L', U', L]
   | so 3 == green && sg 1 == red = [L, U', L', U', F, U, F']
 --
   | so 5 == yellow && sg 7 == red = [F, U', F']
-  | so 5 == green && sg 7 == yellow = [Y', U', R, U, R', Y]
+  | so 5 == green && sg 7 == yellow = [U', F, U, F']
   | so 5 == red && sg 7 == green = [F, U, U, F', L', U', L]
   | otherwise = error "setYGR"
   where sr = sel (r q)
@@ -527,10 +528,8 @@ setGR :: Op -> Q -> [Op]
 setGR tc q
   | sr 8 == green && sg 4 == red = 
       [U, F, U', F', U', L, U, L', U', F, U', F', U', L', U, L]
-  | sr 6 == red && sw 2 == green =
-      [Y', U', F', U, F, U, R, U', R', Y]
-  | sr 6 == green && sw 2 == red = 
-      [Y', U, U, R, U', R', U', F', U, F, Y]
+  | sr 6 == red && sw 2 == green = [U', L', U, L, U, F, U', F']
+  | sr 6 == green && sw 2 == red = [U, U, F, U', F', U', L', U, L]
   | sr 4 == green && sb 8 == red =
       [U, R, U', R', U', F', U, F, U, L', U, L, U, F, U', F']
   | sr 4 == red && sb 8 == green =
@@ -540,24 +539,18 @@ setGR tc q
       [Y, U, R, U', R', U', R, U, R', Y', U, U, L', U, L, U, F, U', F']
   | sb 4 == red && so 8 == green =
       [Y, U, R, U', R', U', R, U, R', Y', U, F, U', F', U', L', U, L]
-  | sb 6 == red && sw 4 == green =
-      [L', U, L, U, F, U', F']
-  | sb 6 == green && sw 4 == red =
-      [U', F, U', F', U', L', U, L]
+  | sb 6 == red && sw 4 == green = [L', U, L, U, F, U', F']
+  | sb 6 == green && sw 4 == red = [U', F, U', F', U', L', U, L]
 --
-  | so 6 == red && sw 6 == green =
-      [U, L', U, L, U, F, U', F']
-  | so 6 == green && sw 6 == red = 
-      [F, U', F', U', L', U, L]
+  | so 6 == red && sw 6 == green = [U, L', U, L, U, F, U', F']
+  | so 6 == green && sw 6 == red = [F, U', F', U', L', U, L]
   | so 4 == red && sg 8 == green =
       [Y, Y, U, R, U', R', U', F', U, F, Y, Y, U, U, F, U', F', U', L', U, L]
   | so 4 == green && sg 8 == red =
       [Y, Y, U, R, U', R', U', F', U, F, Y, Y, U', L', U, L, U, F, U', F']
 --
-  | sg 6 == red && sw 8 == green = 
-      [U, U, L', U, L, U, F, U', F']
-  | sg 6 == green && sw 8 == red =
-      [U, F, U', F', U', L', U, L]
+  | sg 6 == red && sw 8 == green = [U, U, L', U, L, U, F, U', F']
+  | sg 6 == green && sw 8 == red = [U, F, U', F', U', L', U, L]
   | otherwise = error "setGR"
   where sr = sel (r q)
         sg = sel (g q)
