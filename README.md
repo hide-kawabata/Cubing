@@ -22,7 +22,7 @@ Usage:
     ...
    ```
    
-   Note: the above input string corresponds to the following pattern:
+   Note: the above input string corresponds to the following pattern (based on the Western color scheme):
 
     ```
            YWB                            765         
