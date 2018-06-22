@@ -156,6 +156,7 @@ turn Z q = Q { w = rot False $ g q
              }
 turn op q = case op of
   R' -> applySeq [R, R, R] q
+  R2 -> applySeq [R, R] q
   Y' -> applySeq [Y, Y, Y] q
   Z2 -> applySeq [Z, Z] q
   Z' -> applySeq [Z, Z, Z] q
@@ -175,6 +176,14 @@ turn op q = case op of
   B2 -> applySeq [B, B] q
   B' -> applySeq [Y, R', Y'] q
   Y2 -> applySeq [Y, Y] q
+  Y'2 -> applySeq [Y', Y'] q
+  Z'2 -> applySeq [Z', Z'] q
+  U'2 -> applySeq [U', U'] q
+  B'2 -> applySeq [B', B'] q
+  D'2 -> applySeq [D', D'] q
+  L'2 -> applySeq [L', L'] q
+  R'2 -> applySeq [R', R'] q
+  F'2 -> applySeq [F', F'] q
   M -> applySeq [Z, D', U, Y', Z'] q
 
 applySeq :: [Op] -> Q -> Q
@@ -203,6 +212,36 @@ expandOp (x:xs) = case x of
   Z'2 -> Z:Z:(expandOp xs)
   _ -> x:(expandOp xs)
 
+exchangeOp :: [Op] -> [Op]
+exchangeOp [] = []
+exchangeOp l@(x:[]) = l
+-- Y
+exchangeOp (Y:U:xs) = exchangeOp (U:Y:xs)
+exchangeOp (Y:U':xs) = exchangeOp (U':Y:xs)
+exchangeOp (Y':U:xs) = exchangeOp (U:Y':xs)
+exchangeOp (Y':U':xs) = exchangeOp (U':Y':xs)
+exchangeOp (Y:D:xs) = exchangeOp (D:Y:xs)
+exchangeOp (Y:D':xs) = exchangeOp (D':Y:xs)
+exchangeOp (Y':D:xs) = exchangeOp (D:Y':xs)
+exchangeOp (Y':D':xs) = exchangeOp (D':Y':xs)
+-- D
+exchangeOp (D:U:xs) = exchangeOp (U:D:xs)
+exchangeOp (D:U':xs) = exchangeOp (U':D:xs)
+exchangeOp (D':U:xs) = exchangeOp (U:D':xs)
+exchangeOp (D':U':xs) = exchangeOp (U':D':xs)
+-- B
+exchangeOp (B:F:xs) = exchangeOp (F:B:xs)
+exchangeOp (B:F':xs) = exchangeOp (F':B:xs)
+exchangeOp (B':F:xs) = exchangeOp (F:B':xs)
+exchangeOp (B':F':xs) = exchangeOp (F':B':xs)
+-- L
+exchangeOp (L:R:xs) = exchangeOp (R:L:xs)
+exchangeOp (L:R':xs) = exchangeOp (R':L:xs)
+exchangeOp (L':R:xs) = exchangeOp (R:L':xs)
+exchangeOp (L':R':xs) = exchangeOp (R':L':xs)
+--
+exchangeOp (x:xs) = x:exchangeOp xs
+
 revOp :: Op -> Op
 revOp U = U'
 revOp U' = U
@@ -216,45 +255,82 @@ revOp F = F'
 revOp F' = F
 revOp R = R'
 revOp R' = R
+revOp Y = Y'
+revOp Y' = Y
+
+reduceOp :: [Op] -> [Op]
+reduceOp [] = []
+reduceOp l@(x:[]) = l
+reduceOp (U:U':ys) = reduceOp ys
+reduceOp (L:L':ys) = reduceOp ys
+reduceOp (R:R':ys) = reduceOp ys
+reduceOp (B:B':ys) = reduceOp ys
+reduceOp (D:D':ys) = reduceOp ys
+reduceOp (F:F':ys) = reduceOp ys
+reduceOp (Y:Y':ys) = reduceOp ys
+reduceOp (Z:Z':ys) = reduceOp ys
+reduceOp (U':U:ys) = reduceOp ys
+reduceOp (L':L:ys) = reduceOp ys
+reduceOp (R':R:ys) = reduceOp ys
+reduceOp (B':B:ys) = reduceOp ys
+reduceOp (D':D:ys) = reduceOp ys
+reduceOp (F':F:ys) = reduceOp ys
+reduceOp (Y':Y:ys) = reduceOp ys
+reduceOp (Z':Z:ys) = reduceOp ys
+reduceOp (a:b:c:d:ys) 
+  | a == b && b == c && c == d = reduceOp ys
+  | a == b && b == c = reduceOp ((revOp a):(d:ys))
+  | otherwise = a:(reduceOp (b:c:d:ys))
+reduceOp (a:b:c:[]) 
+  | a == b && b == c = [revOp a]
+  | otherwise = a:(reduceOp (b:c:[]))
+reduceOp l = l
+
+iterOpt :: ([Op] -> [Op]) -> [Op] -> [Op]
+iterOpt f l
+  | l == l' = l'
+  | otherwise = f l'
+  where l' = f l
+
+mergeOp :: [Op] -> [Op]
+mergeOp [] = []
+mergeOp l@(x:[]) = l
+mergeOp (U:U:ys) = U2:mergeOp ys
+mergeOp (B:B:ys) = B2:mergeOp ys
+mergeOp (F:F:ys) = F2:mergeOp ys
+mergeOp (D:D:ys) = D2:mergeOp ys
+mergeOp (L:L:ys) = L2:mergeOp ys
+mergeOp (R:R:ys) = R2:mergeOp ys
+mergeOp (Y:Y:ys) = Y2:mergeOp ys
+mergeOp (Z:Z:ys) = Z2:mergeOp ys
+mergeOp (U':U':ys) = U2:mergeOp ys
+mergeOp (B':B':ys) = B2:mergeOp ys
+mergeOp (F':F':ys) = F2:mergeOp ys
+mergeOp (D':D':ys) = D2:mergeOp ys
+mergeOp (L':L':ys) = L2:mergeOp ys
+mergeOp (R':R':ys) = R2:mergeOp ys
+mergeOp (Y':Y':ys) = Y2:mergeOp ys
+mergeOp (Z':Z':ys) = Z2:mergeOp ys
+mergeOp (y:ys) = y:mergeOp ys
 
 optimizeOp :: [Op] -> [Op]
-optimizeOp [] = []
-optimizeOp l@(x:[]) = l
-optimizeOp l@(a:b:c:d:ys) 
-  | a == b && b == c && c == d && d == a = optimizeOp ys
-  | a == b && b == c && c == d = optimizeOp ((revOp a):(d:ys))
-  | otherwise = a:(optimizeOp (b:c:d:ys))
-optimizeOp (a:b:ys) = case (a,b) of
-  (U,U') -> optimizeOp ys
-  (L,L') -> optimizeOp ys
-  (R,R') -> optimizeOp ys
-  (B,B') -> optimizeOp ys
-  (D,D') -> optimizeOp ys
-  (F,F') -> optimizeOp ys
-  (Y,Y') -> optimizeOp ys
-  (Z,Z') -> optimizeOp ys
-  (U',U) -> optimizeOp ys
-  (L',L) -> optimizeOp ys
-  (R',R) -> optimizeOp ys
-  (B',B) -> optimizeOp ys
-  (D',D) -> optimizeOp ys
-  (F',F) -> optimizeOp ys
-  (Y',Y) -> optimizeOp ys
-  (Z',Z) -> optimizeOp ys
-  _ -> a:(optimizeOp (b:ys))
+optimizeOp l = mergeOp $ iterOpt reduceOp $ iterOpt exchangeOp $ expandOp l
 
 
 -- checker functions
 checkRY :: Op -> Q -> Bool
-checkRY tc q = sel (r q) 2 == rotc tc Red && sel (y q) 6 == rotc tc Yellow
+checkRY tc q = not ok
+  where ok = sel (r q) 2 == rotc tc Red && sel (y q) 6 == rotc tc Yellow
 
 checkYGR :: Op -> Q -> Bool
-checkYGR tc q = sel (r q) 1 == rotc tc Red &&
-                sel (g q) 3 == rotc tc Green &&
-                sel (y q) 7 == rotc tc Yellow
+checkYGR tc q = not ok
+  where ok = sel (r q) 1 == rotc tc Red &&
+             sel (g q) 3 == rotc tc Green &&
+             sel (y q) 7 == rotc tc Yellow
 
 checkGR :: Op -> Q -> Bool
-checkGR tc q = sel (g q) 4 == rotc tc Green && sel (r q) 8 == rotc tc Red
+checkGR tc q = not ok
+  where ok = sel (g q) 4 == rotc tc Green && sel (r q) 8 == rotc tc Red
 
 checkOne :: Q -> Bool
 checkOne q = swq 2 /= White && swq 4 /= White &&
@@ -262,8 +338,9 @@ checkOne q = swq 2 /= White && swq 4 /= White &&
   where swq = sel (w q)
 
 checkFive :: Q -> Bool
-checkFive q = swq 4 == c && swq 6 == c && swq 8 == c
-  where swq = sel (w q)
+checkFive q = not ok
+  where ok = swq 4 == c && swq 6 == c && swq 8 == c
+        swq = sel (w q)
         c = swq 2
 
 checkPat :: Q -> Bool
@@ -280,8 +357,7 @@ checkPat q
         (o5, o7) = let sq = sel (o q) in (sq 5, sq 7)
         (g5, g7) = let sq = sel (g q) in (sq 5, sq 7)
         (b5, b7) = let sq = sel (b q) in (sq 5, sq 7)
-        (w1, w3, w5, w7) = let sq = sel (w q) 
-                           in (sq 1, sq 3, sq 5, sq 7)
+        (w1, w3, w5, w7) = let sq = sel (w q) in (sq 1, sq 3, sq 5, sq 7)
 
 checkNine :: Q -> Bool
 checkNine q
@@ -297,6 +373,10 @@ checkNine q
   | r7 == r6 && o5 == o7 && o5 == g6 = True
   | r7 == b5 && r5 == b6 && r6 == b7 && g6 == g5 = True
   | r6 == r7 && g5 == g6 && g5 == b7 && r7 == o5 = True
+  | r7 == r6 && b7 == b6 && o7 == o6 && o6 == r5 = True
+  | r5 == r6 && b5 == b6 && o5 == o6 && o6 == r7 = True
+  | r5 == b6 && b6 == o7 && r7 == g6 && g6 == o5 = True
+  | g5 == g6 && g6 == g7 && r7 == b5 && o5 == b7 = True
   | otherwise = False
   where (r5, r6, r7) = let sq = sel (r q) in (sq 5, sq 6, sq 7)
         (g5, g6, g7) = let sq = sel (g q) in (sq 5, sq 6, sq 7)
@@ -310,23 +390,23 @@ checkU q = let sq = sel (r q) in sq 4 == sq 5
 -- solver functions
 nextSeq :: Q -> [Op] -> [Op]
 nextSeq q ops
-  | not $ checkRY N q = cont $ setRY N q
-  | not $ checkRY Y (turn Y q) = cont $ [Y] ++ setRY Y (turn Y q) ++ [Y']
-  | not $ checkRY Y2 (turn Y2 q) = cont $ [Y2] ++ setRY Y2 (turn Y2 q) ++ [Y2] 
-  | not $ checkRY Y' (turn Y' q) = cont $ [Y'] ++ setRY Y' (turn Y' q) ++ [Y]
+  | checkRY N q = cont $ setRY N q
+  | checkRY Y (turn Y q) = cont $ [Y] ++ setRY Y (turn Y q) ++ [Y']
+  | checkRY Y2 (turn Y2 q) = cont $ [Y2] ++ setRY Y2 (turn Y2 q) ++ [Y2] 
+  | checkRY Y' (turn Y' q) = cont $ [Y'] ++ setRY Y' (turn Y' q) ++ [Y]
 --
-  | not $ checkYGR N q = cont $ setYGR N q
-  | not $ checkYGR Y (turn Y q) = cont $ [Y] ++ setYGR Y (turn Y q) ++ [Y']
-  | not $ checkYGR Y2 (turn Y2 q) = cont $ [Y2] ++ setYGR Y2 (turn Y2 q) ++ [Y2]
-  | not $ checkYGR Y' (turn Y' q) = cont $ [Y'] ++ setYGR Y' (turn Y' q) ++ [Y]
+  | checkYGR N q = cont $ setYGR N q
+  | checkYGR Y (turn Y q) = cont $ [Y] ++ setYGR Y (turn Y q) ++ [Y']
+  | checkYGR Y2 (turn Y2 q) = cont $ [Y2] ++ setYGR Y2 (turn Y2 q) ++ [Y2]
+  | checkYGR Y' (turn Y' q) = cont $ [Y'] ++ setYGR Y' (turn Y' q) ++ [Y]
 --
-  | not $ checkGR N q = cont $ setGR N q
-  | not $ checkGR Y (turn Y q) = cont $ [Y] ++ setGR Y (turn Y q) ++ [Y']
-  | not $ checkGR Y2 (turn Y2 q) = cont $ [Y2] ++ setGR Y2 (turn Y2 q) ++ [Y2]
-  | not $ checkGR Y' (turn Y' q) = cont $ [Y'] ++ setGR Y' (turn Y' q) ++ [Y]
+  | checkGR N q = cont $ setGR N q
+  | checkGR Y (turn Y q) = cont $ [Y] ++ setGR Y (turn Y q) ++ [Y']
+  | checkGR Y2 (turn Y2 q) = cont $ [Y2] ++ setGR Y2 (turn Y2 q) ++ [Y2]
+  | checkGR Y' (turn Y' q) = cont $ [Y'] ++ setGR Y' (turn Y' q) ++ [Y]
 --
   | checkOne q = cont $ oneToThree
-  | not $ checkFive q = cont $ threeToFive q
+  | checkFive q = cont $ threeToFive q
   | checkPat q = cont $ fiveToNine q
   | checkPat (turn Y q) = cont $ [Y] ++ fiveToNine (turn Y q) ++ [Y']
   | checkPat (turn Y2 q) = cont $ [Y2] ++ fiveToNine (turn Y2 q) ++ [Y2]
@@ -337,10 +417,10 @@ nextSeq q ops
   | checkNine (turn Y2 q) = cont $ [Y2] ++ nineToFinish (turn Y2 q) ++ [Y2]
   | checkNine (turn Y' q) = cont $ [Y'] ++ nineToFinish (turn Y' q) ++ [Y]
 --
-  | checkU q = optimizeOp $ expandOp $ ops
-  | checkU (turn U q) = optimizeOp $ expandOp $ ops ++ [U]
-  | checkU (turn U2 q) = optimizeOp $ expandOp $ ops ++ [U2]
-  | checkU (turn U' q) = optimizeOp $ expandOp $ ops ++ [U']
+  | checkU q = optimizeOp ops
+  | checkU (turn U q) = optimizeOp $ ops ++ [U]
+  | checkU (turn U2 q) = optimizeOp $ ops ++ [U2]
+  | checkU (turn U' q) = optimizeOp $ ops ++ [U']
 --
   | otherwise = error "nextSeq"
   where cont ops' = nextSeq (applySeq ops' q) (ops ++ ops')
@@ -365,158 +445,127 @@ rotc Y2 c = c
 
 setRY :: Op -> Q -> [Op]
 setRY tc q
-  | sel (r q) 2 == rotc tc Yellow &&
-    sel (y q) 6 == rotc tc Red = [F', D, R', D']
-  | sel (r q) 4 == rotc tc Yellow &&
-    sel (b q) 8 == rotc tc Red = [D, R', D']
-  | sel (r q) 4 == rotc tc Red &&
-    sel (b q) 8 == rotc tc Yellow = [F]
-  | sel (r q) 6 == rotc tc Red &&
-    sel (w q) 2 == rotc tc Yellow = [F, F]
-  | sel (r q) 6 == rotc tc Yellow &&
-    sel (w q) 2 == rotc tc Red = [U', R', F, R]
-  | sel (r q) 8 == rotc tc Yellow &&
-    sel (g q) 4 == rotc tc Red = [D', L, D]
-  | sel (r q) 8 == rotc tc Red &&
-    sel (g q) 4 == rotc tc Yellow = [F']
-
-  | sel (b q) 2 == rotc tc Red &&
-    sel (y q) 4 == rotc tc Yellow = [R, D, R', D']
-  | sel (b q) 2 == rotc tc Yellow &&
-    sel (y q) 4 == rotc tc Red = [R, F]
-  | sel (b q) 4 == rotc tc Yellow &&
-    sel (o q) 8 == rotc tc Red = [B, U, U, B', F, F]
-  | sel (b q) 4 == rotc tc Red &&
-    sel (o q) 8 == rotc tc Yellow = [R', U, R, F, F]
-  | sel (b q) 6 == rotc tc Red &&
-    sel (w q) 4 == rotc tc Yellow = [U, F, F]
-  | sel (b q) 6 == rotc tc Yellow &&
-    sel (w q) 4 == rotc tc Red = [R', F, R]
-
-  | sel (o q) 2 == rotc tc Red &&
-    sel (y q) 2 == rotc tc Yellow = [B, B, U, U, F, F]
-  | sel (o q) 2 == rotc tc Yellow &&
-    sel (y q) 2 == rotc tc Red = [B, B, U, R', F, R]
-  | sel (o q) 4 == rotc tc Yellow &&
-    sel (g q) 8 == rotc tc Red = [L, U', L', F, F]
-  | sel (o q) 4 == rotc tc Red &&
-    sel (g q) 8 == rotc tc Yellow = [B', U', B, U', F, F]
-  | sel (o q) 6 == rotc tc Red &&
-    sel (w q) 6 == rotc tc Yellow = [U, U, F, F]
-  | sel (o q) 6 == rotc tc Yellow &&
-    sel (w q) 6 == rotc tc Red = [U', L, F', L']
-
-  | sel (g q) 2 == rotc tc Red &&
-    sel (y q) 8 == rotc tc Yellow = [L', D', L, D]
-  | sel (g q) 2 == rotc tc Yellow &&
-    sel (y q) 8 == rotc tc Red = [L', F']
-  | sel (g q) 6 == rotc tc Red &&
-    sel (w q) 8 == rotc tc Yellow = [U', F, F]
-  | sel (g q) 6 == rotc tc Yellow &&
-    sel (w q) 8 == rotc tc Red = [L, F', L']
-
+  | sr 2 == yellow && sy 6 == red = [F', D, R', D']
+  | sr 4 == yellow && sb 8 == red = [D, R', D']
+  | sr 4 == red && sb 8 == yellow = [F]
+  | sr 6 == red && sw 2 == yellow = [F, F]
+  | sr 6 == yellow && sw 2 == red = [U', R', F, R]
+  | sr 8 == yellow && sg 4 == red = [D', L, D]
+  | sr 8 == red && sg 4 == yellow = [F']
+--
+  | sb 2 == red && sy 4 == yellow = [R, D, R', D']
+  | sb 2 == yellow && sy 4 == red = [R, F]
+  | sb 4 == yellow && so 8 == red = [B, U, U, B', F, F]
+  | sb 4 == red && so 8 == yellow = [R', U, R, F, F]
+  | sb 6 == red && sw 4 == yellow = [U, F, F]
+  | sb 6 == yellow && sw 4 == red = [R', F, R]
+--
+  | so 2 == red && sy 2 == yellow = [B, B, U, U, F, F]
+  | so 2 == yellow && sy 2 == red = [B, B, U, R', F, R]
+  | so 4 == yellow && sg 8 == red = [L, U', L', F, F]
+  | so 4 == red && sg 8 == yellow = [B', U', B, U', F, F]
+  | so 6 == red && sw 6 == yellow = [U, U, F, F]
+  | so 6 == yellow && sw 6 == red = [U', L, F', L']
+--
+  | sg 2 == red && sy 8 == yellow = [L', D', L, D]
+  | sg 2 == yellow && sy 8 == red = [L', F']
+  | sg 6 == red && sw 8 == yellow = [U', F, F]
+  | sg 6 == yellow && sw 8 == red = [L, F', L']
   | otherwise = error "setRY"
+  where sr = sel (r q)
+        sy = sel (y q)
+        sb = sel (b q)
+        sw = sel (w q)
+        sg = sel (g q)
+        so = sel (o q)
+        yellow = rotc tc Yellow
+        red = rotc tc Red
+
 
 setYGR :: Op -> Q -> [Op]
 setYGR tc q
-  | sel (r q) 1 == rotc tc Yellow &&
-    sel (g q) 3 == rotc tc Red = [Y', R, U, R', U', R, U, R', Y]
-  | sel (r q) 1 == rotc tc Green &&
-    sel (g q) 3 == rotc tc Yellow = [Y', U, R, U', R', U, R, U', R', Y]
+  | sr 1 == yellow && sg 3 == red = [Y', R, U, R', U', R, U, R', Y]
+  | sr 1 == green && sg 3 == yellow = [L', U', L, U, L', U', L]
 --
-  | sel (r q) 3 == rotc tc Yellow &&
-    sel (b q) 1 == rotc tc Green = [R, U, R', Y', R, U, R', U', R, U, R', U', R, U, R', Y]
-  | sel (r q) 3 == rotc tc Red &&
-    sel (b q) 1 == rotc tc Yellow = [R, U, R', Y', R, U, R', Y]
-  | sel (r q) 3 == rotc tc Green &&
-    sel (b q) 1 == rotc tc Red = [R, U, R', Y', U, R, U', R', Y]
+  | sr 3 == yellow && sb 1 == green = [F', U', F, U, U, L', U', L]
+  | sr 3 == red && sb 1 == yellow = [R, U, R', Y', R, U, R', Y]
+  | sr 3 == green && sb 1 == red = [R, U, R', Y', U, R, U', R', Y]
 --
-  | sel (r q) 5 == rotc tc Green &&
-    sel (b q) 7 == rotc tc Yellow = [U, Y', R, U, R', U', Y]  
-  | sel (r q) 5 == rotc tc Yellow &&
-    sel (b q) 7 == rotc tc Red = [U, Y', U, R, U', R', Y]
-  | sel (r q) 5 == rotc tc Red &&
-    sel (b q) 7 == rotc tc Green = [U, Y', R, U, R', U', R, U, R', U', R, U, R', Y]
+  | sr 5 == green && sb 7 == yellow = [L', U, L]
+  | sr 5 == yellow && sb 7 == red = [U, Y', U, R, U', R', Y]
+  | sr 5 == red && sb 7 == green = [R, U, U, R', F, U, F']
 --
-  | sel (r q) 7 == rotc tc Red &&
-    sel (g q) 5 == rotc tc Yellow = [Y', U, R, U', R', Y]
-  | sel (r q) 7 == rotc tc Green &&
-    sel (g q) 5 == rotc tc Red = [Y', R, U, R', U', R, U, R', U', R, U, R', Y]
-  | sel (r q) 7 == rotc tc Yellow &&
-    sel (g q) 5 == rotc tc Green = [Y', R, U, R', Y]
+  | sr 7 == red && sg 5 == yellow = [Y', U, R, U', R', Y]
+  | sr 7 == green && sg 5 == red = [F, U, U, F', U', F, U, F']
+  | sr 7 == yellow && sg 5 == green = [Y', R, U, R', Y]
 --
-  | sel (b q) 3 == rotc tc Green &&
-    sel (o q) 1 == rotc tc Red = [Y, R, U, R', U, Y2, U, R, U', R', Y]
-  | sel (b q) 3 == rotc tc Yellow &&
-    sel (o q) 1 == rotc tc Green = [Y, R, U, R', U, Y2, R, U, R', U', R, U, R', U', R, U, R', Y]
-  | sel (b q) 3 == rotc tc Red &&
-    sel (o q) 1 == rotc tc Yellow = [Y, R, U, R', U, Y2, R, U, R', Y]
+  | sb 3 == green && so 1 == red = [R', U', U', R, F, U, F']
+  | sb 3 == yellow && so 1 == green = [R', U', R, U', L', U', L]
+  | sb 3 == red && so 1 == yellow = [Y, R, U, R', U, Y2, R, U, R', Y]
 --
-  | sel (b q) 5 == rotc tc Green &&
-    sel (o q) 7 == rotc tc Yellow = [U, U, Y', R, U, R', Y]
-  | sel (b q) 5 == rotc tc Red &&
-    sel (o q) 7 == rotc tc Green = [U, U, Y', R, U, R', U', R, U, R', U', R, U, R', Y]
-  | sel (b q) 5 == rotc tc Yellow &&
-    sel (o q) 7 == rotc tc Red = [U, U, Y', U, R, U', R', Y]
+  | sb 5 == green && so 7 == yellow = [U, U, Y', R, U, R', Y]
+  | sb 5 == red && so 7 == green = [B, U, U, B', U, F, U, F']
+  | sb 5 == yellow && so 7 == red = [U, U, Y', U, R, U', R', Y]
 --
-  | sel (o q) 3 == rotc tc Red &&
-    sel (g q) 1 == rotc tc Yellow = [Y, Y, R, U', R', U', Y, R, U, R', U', R, U, R', U', R, U, R', Y]
-  | sel (o q) 3 == rotc tc Yellow &&
-    sel (g q) 1 == rotc tc Green = [Y, Y, R, U', R', Y, R, U, R', Y]
-  | sel (o q) 3 == rotc tc Green &&
-    sel (g q) 1 == rotc tc Red = [Y, Y, R, U', R', U', Y, R, U, R', Y]
+  | so 3 == red && sg 1 == yellow = [L, U, L', U, U, F, U, F']
+  | so 3 == yellow && sg 1 == green = [B', U', B, L', U', L]
+  | so 3 == green && sg 1 == red = [L, U', L', U', F, U, F']
 --
-  | sel (o q) 5 == rotc tc Yellow &&
-    sel (g q) 7 == rotc tc Red = [Y', R, U, R', Y]
-  | sel (o q) 5 == rotc tc Green &&
-    sel (g q) 7 == rotc tc Yellow = [Y', U', R, U, R', Y]
-  | sel (o q) 5 == rotc tc Red &&
-    sel (g q) 7 == rotc tc Green = [Y', U', R, U, R', U', R, U, R', U', R, U, R', Y]
-
+  | so 5 == yellow && sg 7 == red = [F, U', F']
+  | so 5 == green && sg 7 == yellow = [Y', U', R, U, R', Y]
+  | so 5 == red && sg 7 == green = [F, U, U, F', L', U', L]
   | otherwise = error "setYGR"
+  where sr = sel (r q)
+        sb = sel (b q)
+        sg = sel (g q)
+        so = sel (o q)
+        yellow = rotc tc Yellow
+        green = rotc tc Green
+        red = rotc tc Red
 
 setGR :: Op -> Q -> [Op]
 setGR tc q
-  | sel (r q) 8 == rotc tc Green &&
-    sel (g q) 4 == rotc tc Red = [U, F, U', F', U', L, U, L', U', F, U', F', U', L', U, L]
-
-  | sel (r q) 6 == rotc tc Red &&
-    sel (w q) 2 == rotc tc Green = [Y', U', F', U, F, U, R, U', R', Y]
-  | sel (r q) 6 == rotc tc Green &&
-    sel (w q) 2 == rotc tc Red = [Y', U, U, R, U', R', U', F', U, F, Y]
-
-  | sel (r q) 4 == rotc tc Green &&
-    sel (b q) 8 == rotc tc Red = [U, R, U', R', U', F', U, F, U, L', U, L, U, F, U', F']
-  | sel (r q) 4 == rotc tc Red &&
-    sel (b q) 8 == rotc tc Green = [U, R, U', R', U', F', U, F, F, U', F', U', L', U, L]
+  | sr 8 == green && sg 4 == red = 
+      [U, F, U', F', U', L, U, L', U', F, U', F', U', L', U, L]
+  | sr 6 == red && sw 2 == green =
+      [Y', U', F', U, F, U, R, U', R', Y]
+  | sr 6 == green && sw 2 == red = 
+      [Y', U, U, R, U', R', U', F', U, F, Y]
+  | sr 4 == green && sb 8 == red =
+      [U, R, U', R', U', F', U, F, U, L', U, L, U, F, U', F']
+  | sr 4 == red && sb 8 == green =
+      [U, R, U', R', U', F', U, F, F, U', F', U', L', U, L]
 --
-  | sel (b q) 4 == rotc tc Green &&
-    sel (o q) 8 == rotc tc Red = [Y, U, R, U', R', U', R, U, R', Y', U, U, L', U, L, U, F, U', F']
-  | sel (b q) 4 == rotc tc Red &&
-    sel (o q) 8 == rotc tc Green = [Y, U, R, U', R', U', R, U, R', Y', U, F, U', F', U', L', U, L]
-  
-  | sel (b q) 6 == rotc tc Red &&
-    sel (w q) 4 == rotc tc Green = [L', U, L, U, F, U', F']
-  | sel (b q) 6 == rotc tc Green &&
-    sel (w q) 4 == rotc tc Red = [U', F, U', F', U', L', U, L]
+  | sb 4 == green && so 8 == red =
+      [Y, U, R, U', R', U', R, U, R', Y', U, U, L', U, L, U, F, U', F']
+  | sb 4 == red && so 8 == green =
+      [Y, U, R, U', R', U', R, U, R', Y', U, F, U', F', U', L', U, L]
+  | sb 6 == red && sw 4 == green =
+      [L', U, L, U, F, U', F']
+  | sb 6 == green && sw 4 == red =
+      [U', F, U', F', U', L', U, L]
 --
-  | sel (o q) 6 == rotc tc Red &&
-    sel (w q) 6 == rotc tc Green = [U, L', U, L, U, F, U', F']
-  | sel (o q) 6 == rotc tc Green &&
-    sel (w q) 6 == rotc tc Red = [F, U', F', U', L', U, L]
-
-  | sel (o q) 4 == rotc tc Red &&
-    sel (g q) 8 == rotc tc Green = [Y, Y, U, R, U', R', U', F', U, F, Y, Y, U, U, F, U', F', U', L', U, L]
-  | sel (o q) 4 == rotc tc Green &&
-    sel (g q) 8 == rotc tc Red = [Y, Y, U, R, U', R', U', F', U, F, Y, Y, U', L', U, L, U, F, U', F']
+  | so 6 == red && sw 6 == green =
+      [U, L', U, L, U, F, U', F']
+  | so 6 == green && sw 6 == red = 
+      [F, U', F', U', L', U, L]
+  | so 4 == red && sg 8 == green =
+      [Y, Y, U, R, U', R', U', F', U, F, Y, Y, U, U, F, U', F', U', L', U, L]
+  | so 4 == green && sg 8 == red =
+      [Y, Y, U, R, U', R', U', F', U, F, Y, Y, U', L', U, L, U, F, U', F']
 --
-  | sel (g q) 6 == rotc tc Red &&
-    sel (w q) 8 == rotc tc Green = [U, U, L', U, L, U, F, U', F']
-  | sel (g q) 6 == rotc tc Green &&
-    sel (w q) 8 == rotc tc Red = [U, F, U', F', U', L', U, L]
-
+  | sg 6 == red && sw 8 == green = 
+      [U, U, L', U, L, U, F, U', F']
+  | sg 6 == green && sw 8 == red =
+      [U, F, U', F', U', L', U, L]
   | otherwise = error "setGR"
-
+  where sr = sel (r q)
+        sg = sel (g q)
+        sw = sel (w q)
+        sb = sel (b q)
+        so = sel (o q)
+        green = rotc tc Green
+        red = rotc tc Red
 
 oneToThree :: [Op]
 oneToThree  = [F, R, U, R', U', F']
@@ -587,13 +636,21 @@ nineToFinish q
   | r7 == b5 && r5 == b6 && r6 == b7 && g6 == g5 = 
       [R', U', F', R, U, R', U', R', F, R, R, U', R', U', R, U, R', U, R]
   | r6 == r7 && g5 == g6 && g5 == b7 && r7 == o5 = 
-      [R', U, R', U', Y, R', F', R, R, U', R', U, R', F, R, F]
+      [R', U, R', U', Y, R', F', R, R, U', R', U, R', F, R, F, Y']
+      
+  | r7 == r6 && b7 == b6 && o7 == o6 && o6 == r5 =
+      [R', U, R, U', R', F', U', F, R, U, R', F, R', F', R, U', R]
+  | r5 == r6 && b5 == b6 && o5 == o6 && o6 == r7 =
+      [L, U', L', U, L, F, U, F', L', U', L, F', L, F, L', U, R, L']
+  | r5 == b6 && b6 == o7 && r7 == g6 && g6 == o5 =
+      [R, B', R', F, R, B, R', F', R, B, R', F, R, B', R', F']
+  | g5 == g6 && g6 == g7 && r7 == b5 && o5 == b7 =
+      [R', U', F', R, U, R', U', R', F, R, R, U', R', U', R, U, R', U, R]
   | otherwise = error "nineToFinish"
   where (r5, r6, r7) = let sq = sel (r q) in (sq 5, sq 6, sq 7)
         (g5, g6, g7) = let sq = sel (g q) in (sq 5, sq 6, sq 7)
         (o5, o6, o7) = let sq = sel (o q) in (sq 5, sq 6, sq 7)
         (b5, b6, b7) = let sq = sel (b q) in (sq 5, sq 6, sq 7)
-
 
 
 -- solver interfaces
@@ -619,4 +676,3 @@ main = do
   putStrLn $ "Input a scramble:"
   ins <- getLine
   solve_check ins
-  
