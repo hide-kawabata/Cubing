@@ -71,6 +71,11 @@ data Op = R | R' | U | U' | B | B' | L | L' | F | F' | D | D'
         | Y | Y' | Z | Z' | N | M | M'
         | Y2 | Y'2 | Z2 | Z'2 | R2 | R'2 | U2 | U'2 | B2 | B'2
         | L2 | L'2 | F2 | F'2 | D2 | D'2
+        --
+        | FstLayer | SndLayer | PLL1p 
+        | PLL21p | PLL22p | PLL23p | PLL24p | PLL25p | PLL26p
+        | A2p | A1p | Tp | U1p | U2p | Yp | R2p | Zp | R1p
+        | Hp | G2p | J2p | G4p | J1p | G1p | G3p | Fp | Vp | N2p | N1p | Ep
         deriving (Show, Eq, Read)
 
 type Surface = (Color, Color, Color, Color, Color, Color, Color, Color)
@@ -92,6 +97,7 @@ data Q = Q { w :: Surface
      YYY                            8Y4
      YYY                            123
 -}
+
 
 -- goal configuration
 goal :: Q
@@ -180,6 +186,41 @@ pr q = do
   putStrLn $ "    " ++ show (cyq 8) ++ show Yellow ++ show (cyq 4)
   putStrLn $ "    " ++ show (cyq 1) ++ show (cyq 2) ++ show (cyq 3)
 
+prSeq :: [Op] -> String
+prSeq [] = ""
+prSeq (x:xs)
+  | x == FstLayer = "First Layer -----\n " ++ prSeq xs
+  | x == SndLayer = "\nSecond Layer -----\n " ++ prSeq xs
+  | x == PLL1p
+  || x == PLL21p 
+  || x == PLL22p
+  || x == PLL23p 
+  || x == PLL24p
+  || x == PLL25p 
+  || x == PLL26p = "\nPLL -----\n " ++ prSeq xs
+  | x == A2p 
+  || x == A1p 
+  || x == Tp 
+  || x == U1p 
+  || x == U2p
+  || x == Yp
+  || x == R2p
+  || x == Zp 
+  || x == R1p
+  || x == Hp 
+  || x == G2p
+  || x == J2p
+  || x == G4p
+  || x == J1p
+  || x == G1p
+  || x == G3p
+  || x == Fp
+  || x == Vp 
+  || x == N2p
+  || x == N1p
+  || x == Ep = "\nOLL -----\n " ++ prSeq xs
+  | otherwise = show x ++ " " ++ prSeq xs
+
 
 -- helper functions
 sel :: Surface -> Int -> Color
@@ -256,6 +297,7 @@ turn op q = case op of
   R'2 -> applySeq [R', R'] q
   F'2 -> applySeq [F', F'] q
   M -> applySeq [Z, D', U, Y', Z'] q
+  _ -> q
 
 applySeq :: [Op] -> Q -> Q
 applySeq l q = foldl (\r op -> turn op r) q l
@@ -388,115 +430,50 @@ optimizeOp :: [Op] -> [Op]
 optimizeOp l = mergeOp $ iterOpt reduceOp $ iterOpt exchangeOp $ expandOp l
 
 
--- checker functions
-checkRY :: Op -> Q -> Bool
-checkRY tc q = not ok
-  where ok = sel (r q) 2 == rotc tc Red && sel (y q) 6 == rotc tc Yellow
-
-checkYGR :: Op -> Q -> Bool
-checkYGR tc q = not ok
-  where ok = sel (r q) 1 == rotc tc Red &&
-             sel (g q) 3 == rotc tc Green &&
-             sel (y q) 7 == rotc tc Yellow
-
-checkGR :: Op -> Q -> Bool
-checkGR tc q = not ok
-  where ok = sel (g q) 4 == rotc tc Green && sel (r q) 8 == rotc tc Red
-
-checkOne :: Q -> Bool
-checkOne q = swq 2 /= White && swq 4 /= White &&
-             swq 6 /= White && swq 8 /= White
-  where swq = sel (w q)
-
-checkFive :: Q -> Bool
-checkFive q = not ok
-  where ok = swq 4 == c && swq 6 == c && swq 8 == c
-        swq = sel (w q)
-        c = swq 2
-
-checkPat :: Q -> Bool
-checkPat q
-  | r5 == o7 && o7 == g5 && g5 == g7 = True
-  | w1 == w3 && w3 == o5 && o5 == o7 = True
-  | r5 == b5 && b5 == o5 && o5 == w1 = True
-  | r7 == b7 && b7 == g7 && g7 == w5 = True
-  | r7 == r5 && r5 == o7 && o7 == o5 = True
-  | r7 == b5 && b5 == w3 && w3 == w7 = True
-  | r7 == w3 && w3 == w5 && w5 == o5 = True
-  | otherwise = False
-  where (r5, r7) = let sq = sel (r q) in (sq 5, sq 7)
-        (o5, o7) = let sq = sel (o q) in (sq 5, sq 7)
-        (g5, g7) = let sq = sel (g q) in (sq 5, sq 7)
-        (b5, b7) = let sq = sel (b q) in (sq 5, sq 7)
-        (w1, w3, w5, w7) = let sq = sel (w q) in (sq 1, sq 3, sq 5, sq 7)
-
-checkNine :: Q -> Bool
-checkNine q
-  | r6 == r7 && g5 == g7 && g5 /= g6 && o5 == o6 = True
-  | o5 == o6 && o5 == o7 && o5 /= o6 && r5 == r7 = True
-  | r6 == r7 && b5 == b6 && r7 == o5 = True
-  | r5 == r7 && r5 == b6 && r6 == b7 = True
-  | r5 == r7 && r5 == g6 && r6 == g5 && g7 /= g5 = True
-  | r5 == r7 && b5 == b7 && r5 == o6 && b5 == g6 = True
-  | r5 == r6 && r6 /= r7 && g5 == g7 = True
-  | r7 == r6 && r6 /= r5 && b5 == b7 = True
-  | r5 == r6 && o5 == o7 && o7 == b6 = True
-  | r7 == r6 && o5 == o7 && o5 == g6 = True
-  | r7 == b5 && r5 == b6 && r6 == b7 && g6 == g5 = True
-  | r6 == r7 && g5 == g6 && g5 == b7 && r7 == o5 = True
-  | r7 == r6 && b7 == b6 && o7 == o6 && o6 == r5 = True
-  | r5 == r6 && b5 == b6 && o5 == o6 && o6 == r7 = True
-  | r5 == b6 && b6 == o7 && r7 == g6 && g6 == o5 = True
-  | g5 == g6 && g6 == g7 && r7 == b5 && o5 == b7 = True
-  | otherwise = False
-  where (r5, r6, r7) = let sq = sel (r q) in (sq 5, sq 6, sq 7)
-        (g5, g6, g7) = let sq = sel (g q) in (sq 5, sq 6, sq 7)
-        (o5, o6, o7) = let sq = sel (o q) in (sq 5, sq 6, sq 7)
-        (b5, b6, b7) = let sq = sel (b q) in (sq 5, sq 6, sq 7)
-
-checkU :: Q -> Bool
---checkU q = let sq = sel (r q) in sq 4 == sq 5
-checkU q = q == goal
-
 -- solver functions
-nextSeq :: Q -> Int -> [Op] -> [Op]
-nextSeq q step ops
-  | step > 30 = throw $ CouldNotSolve "nextSeq (no termination)"
---
-  | checkRY N q = cont $ setRY N q
-  | checkRY Y (turn Y q) = cont $ [Y] ++ setRY Y (turn Y q) ++ [Y']
-  | checkRY Y2 (turn Y2 q) = cont $ [Y2] ++ setRY Y2 (turn Y2 q) ++ [Y2] 
-  | checkRY Y' (turn Y' q) = cont $ [Y'] ++ setRY Y' (turn Y' q) ++ [Y]
---
-  | checkYGR N q = cont $ setYGR N q
-  | checkYGR Y (turn Y q) = cont $ [Y] ++ setYGR Y (turn Y q) ++ [Y']
-  | checkYGR Y2 (turn Y2 q) = cont $ [Y2] ++ setYGR Y2 (turn Y2 q) ++ [Y2]
-  | checkYGR Y' (turn Y' q) = cont $ [Y'] ++ setYGR Y' (turn Y' q) ++ [Y]
---
-  | checkGR N q = cont $ setGR N q
-  | checkGR Y (turn Y q) = cont $ [Y] ++ setGR Y (turn Y q) ++ [Y']
-  | checkGR Y2 (turn Y2 q) = cont $ [Y2] ++ setGR Y2 (turn Y2 q) ++ [Y2]
-  | checkGR Y' (turn Y' q) = cont $ [Y'] ++ setGR Y' (turn Y' q) ++ [Y]
---
-  | checkOne q = cont $ oneToThree
-  | checkFive q = cont $ threeToFive q
-  | checkPat q = cont $ fiveToNine q
-  | checkPat (turn Y q) = cont $ [Y] ++ fiveToNine (turn Y q) ++ [Y']
-  | checkPat (turn Y2 q) = cont $ [Y2] ++ fiveToNine (turn Y2 q) ++ [Y2]
-  | checkPat (turn Y' q) = cont $ [Y'] ++ fiveToNine (turn Y' q) ++ [Y]
---
-  | checkNine q = cont $ nineToFinish q
-  | checkNine (turn Y q) = cont $ [Y] ++ nineToFinish (turn Y q) ++ [Y']
-  | checkNine (turn Y2 q) = cont $ [Y2] ++ nineToFinish (turn Y2 q) ++ [Y2]
-  | checkNine (turn Y' q) = cont $ [Y'] ++ nineToFinish (turn Y' q) ++ [Y]
---
-  | checkU q = optimizeOp ops
-  | checkU (turn U q) = optimizeOp $ ops ++ [U]
-  | checkU (turn U2 q) = optimizeOp $ ops ++ [U2]
-  | checkU (turn U' q) = optimizeOp $ ops ++ [U']
---
-  | otherwise = throw $ CouldNotSolve "nextSeq"
-  where cont ops' = nextSeq (applySeq ops' q) (step + 1) (ops ++ ops')
+solveQ :: Q -> [Op]
+solveQ q = optimizeOp $ snd $
+           (q, [FstLayer]) `step`
+           (setRY N) `step`
+           (\q -> [Y] ++ setRY Y (turn Y q) ++ [Y']) `step`
+           (\q -> [Y2] ++ setRY Y2 (turn Y2 q) ++ [Y2]) `step`
+           (\q -> [Y'] ++ setRY Y' (turn Y' q) ++ [Y]) `step`
+           (\q -> [SndLayer]) `step`
+           (\q -> setYGR N q) `step`
+           (\q -> [Y] ++ setYGR Y (turn Y q) ++ [Y']) `step`
+           (\q -> [Y2] ++ setYGR Y2 (turn Y2 q) ++ [Y2]) `step`
+           (\q -> [Y'] ++ setYGR Y' (turn Y' q) ++ [Y]) `step`
+           (\q -> setGR N q) `step`
+           (\q -> [Y] ++ setGR Y (turn Y q) ++ [Y']) `step`
+           (\q -> [Y2] ++ setGR Y2 (turn Y2 q) ++ [Y2]) `step`
+           (\q -> [Y'] ++ setGR Y' (turn Y' q) ++ [Y]) `step`
+           (\q -> oneToThree q) `step`
+           (\q -> threeToFive q) `step`
+           (\q -> fiveToNine q) `step`
+           (\q -> [Y] ++ fiveToNine (turn Y q) ++ [Y']) `step`
+           (\q -> [Y2] ++ fiveToNine (turn Y2 q) ++ [Y2]) `step`
+           (\q -> [Y'] ++ fiveToNine (turn Y' q) ++ [Y]) `step`
+           (\q -> nineToFinish q) `step`
+           (\q -> [Y] ++ nineToFinish (turn Y q) ++ [Y']) `step`
+           (\q -> [Y2] ++ nineToFinish (turn Y2 q) ++ [Y2]) `step`
+           (\q -> [Y'] ++ nineToFinish (turn Y' q) ++ [Y]) `step`
+           (\q -> finishQ q)
+--           `step` (\q -> [])
+
+step :: (Q, [Op]) -> (Q -> [Op]) -> (Q, [Op])
+step (q, ops) slvr = 
+  let ops' = slvr q in
+    let q' = applySeq ops' q in
+      (q', ops ++ ops')
+
+finishQ :: Q -> [Op]
+finishQ q
+  | q == goal = []
+  | turn U q == goal = [U]
+  | turn U2 q == goal = [U2]
+  | turn U' q == goal = [U']
+  | otherwise = throw $ CouldNotSolve "finishQ"
+
 
 rotc :: Op -> Color -> Color
 rotc N c = c
@@ -505,19 +482,13 @@ rotc Y Blue = Orange
 rotc Y Orange = Green
 rotc Y Green = Red
 rotc Y c = c
-rotc Y' Blue = Red
-rotc Y' Orange = Blue
-rotc Y' Green = Orange
-rotc Y' Red = Green
-rotc Y' c = c
-rotc Y2 Red = Orange
-rotc Y2 Blue = Green
-rotc Y2 Orange = Red
-rotc Y2 Green = Blue
-rotc Y2 c = c
+rotc Y2 c = rotc Y $ rotc Y c
+rotc Y' c = rotc Y $ rotc Y2 c
 
 setRY :: Op -> Q -> [Op]
 setRY tc q
+  | sr 2 == red && sy 6 == yellow = []
+--
   | sr 2 == yellow && sy 6 == red = [F', D, R', D']
   | sr 4 == yellow && sb 8 == red = [D, R', D']
   | sr 4 == red && sb 8 == yellow = [F]
@@ -557,6 +528,8 @@ setRY tc q
 
 setYGR :: Op -> Q -> [Op]
 setYGR tc q
+  | sr 1 == red && sg 3 == green = []
+--
   | sr 1 == yellow && sg 3 == red = [F, U, F', U', F, U, F']
   | sr 1 == green && sg 3 == yellow = [L', U', L, U, L', U', L]
 --
@@ -566,7 +539,7 @@ setYGR tc q
 --
   | sr 5 == green && sb 7 == yellow = [L', U, L]
   | sr 5 == yellow && sb 7 == red = [U, L', U', L]
-  | sr 5 == red && sb 7 == green = [R, U, U, R', F, U, F']
+  | sr 5 == red && sb 7 == green = [U, L', U, L, U', U', L', U', L]
 --
   | sr 7 == red && sg 5 == yellow = [L', U', L]
   | sr 7 == green && sg 5 == red = [F, U, U, F', U', F, U, F']
@@ -577,7 +550,7 @@ setYGR tc q
   | sb 3 == red && so 1 == yellow = [B, U, B', U, F, U, F']
 --
   | sb 5 == green && so 7 == yellow = [U, U, F, U, F']
-  | sb 5 == red && so 7 == green = [B, U, U, B', U, F, U, F']
+  | sb 5 == red && so 7 == green = [U, U, L', U, L, U, U, L', U', L]
   | sb 5 == yellow && so 7 == red = [U, U, L', U', L]
 --
   | so 3 == red && sg 1 == yellow = [L, U, L', U, U, F, U, F']
@@ -598,28 +571,30 @@ setYGR tc q
 
 setGR :: Op -> Q -> [Op]
 setGR tc q
+  | sr 8 == red && sg 4 == green = []
+--
   | sr 8 == green && sg 4 == red = 
-      [U, F, U', F', U', L, U, L', U', F, U', F', U', L', U, L]
+      [F, U', F', U', L', U, L, U', F, U', F', U', L', U, L]
   | sr 6 == red && sw 2 == green = [U', L', U, L, U, F, U', F']
   | sr 6 == green && sw 2 == red = [U, U, F, U', F', U', L', U, L]
   | sr 4 == green && sb 8 == red =
-      [U, R, U', R', U', F', U, F, U, L', U, L, U, F, U', F']
+      [R, U', R', U', F', U, F, U, L', U, L, U, F, U', F']
   | sr 4 == red && sb 8 == green =
-      [U, R, U', R', U', F', U, F, F, U', F', U', L', U, L]
+      [R, U', R', U', F', U, F, F, U', F', U', L', U, L]
 --
   | sb 4 == green && so 8 == red =
-      [Y, U, R, U', R', U', R, U, R', Y', U, U, L', U, L, U, F, U', F']
+           [Y, R, U', R', U', F', U, F, Y', U, U, L', U, L, U, F, U', F']
   | sb 4 == red && so 8 == green =
-      [Y, U, R, U', R', U', R, U, R', Y', U, F, U', F', U', L', U, L]
+      [Y, R, U', R', U', F', U, F, Y', U, F, U', F', U', L', U, L]
   | sb 6 == red && sw 4 == green = [L', U, L, U, F, U', F']
   | sb 6 == green && sw 4 == red = [U', F, U', F', U', L', U, L]
 --
   | so 6 == red && sw 6 == green = [U, L', U, L, U, F, U', F']
   | so 6 == green && sw 6 == red = [F, U', F', U', L', U, L]
   | so 4 == red && sg 8 == green =
-      [Y, Y, U, R, U', R', U', F', U, F, Y, Y, U, U, F, U', F', U', L', U, L]
+      [Y, Y, R, U', R', U', F', U, F, Y, Y, U, U, F, U', F', U', L', U, L]
   | so 4 == green && sg 8 == red =
-      [Y, Y, U, R, U', R', U', F', U, F, Y, Y, U', L', U, L, U, F, U', F']
+      [Y, Y, R, U', R', U', F', U, F, Y, Y, U', L', U, L, U, F, U', F']
 --
   | sg 6 == red && sw 8 == green = [U, U, L', U, L, U, F, U', F']
   | sg 6 == green && sw 8 == red = [U, F, U', F', U', L', U, L]
@@ -632,20 +607,27 @@ setGR tc q
         green = rotc tc Green
         red = rotc tc Red
 
-oneToThree :: [Op]
-oneToThree  = [F, R, U, R', U', F']
+-- PLL1
+oneToThree :: Q -> [Op]
+oneToThree q
+  | swq 2 /= White && swq 4 /= White &&
+    swq 6 /= White && swq 8 /= White = PLL1p : [F, R, U, R', U', F']
+  | otherwise = []
+  where swq = sel (w q)
 
+-- PLL2
 threeToFive :: Q -> [Op]
 threeToFive q
-  | w2 == w4 && w2 /= w6 && w2 /= w8 = [B, U, L, U', L', B']
-  | w4 == w6 && w4 /= w8 && w4 /= w2 = [U, B, U, L, U', L', B']
-  | w6 == w8 && w6 /= w2 && w6 /= w4 = [U, U, B, U, L, U', L', B']
-  | w8 == w2 && w8 /= w4 && w8 /= w6 = [U', B, U, L, U', L', B']
-  | w4 == w8 && w4 /= w2 && w4 /= w6 = [F, R, U, R', U', F']
-  | w2 == w6 && w2 /= w4 && w2 /= w8 = [U, F, R, U, R', U', F']
-  | otherwise = throw $ CouldNotSolve "threeToFive"
+  | w2 == w4 && w2 /= w6 && w2 /= w8 = PLL21p : [B, U, L, U', L', B']
+  | w4 == w6 && w4 /= w8 && w4 /= w2 = PLL22p : [U, B, U, L, U', L', B']
+  | w6 == w8 && w6 /= w2 && w6 /= w4 = PLL23p : [U, U, B, U, L, U', L', B']
+  | w8 == w2 && w8 /= w4 && w8 /= w6 = PLL24p : [U', B, U, L, U', L', B']
+  | w4 == w8 && w4 /= w2 && w4 /= w6 = PLL25p : [F, R, U, R', U', F']
+  | w2 == w6 && w2 /= w4 && w2 /= w8 = PLL26p : [U, F, R, U, R', U', F']
+  | otherwise = []
   where (w2, w4, w6, w8) = let sq = sel (w q) in (sq 2, sq 4, sq 6, sq 8)
 
+-- PLL3
 fiveToNine :: Q -> [Op]
 fiveToNine q
   | r5 == o7 && o7 == g5 && g5 == g7 =
@@ -653,13 +635,13 @@ fiveToNine q
   | w1 == w3 && w3 == o5 && o5 == o7 =
       [R, R, D', R, U, U, R', D, R, U, U, R]
   | r5 == b5 && b5 == o5 && o5 == w1 = [R, U, R', U, R, U', U', R']
-  | r7 == b7 && b7 == g7 && g7 == w5 = [R, U', U', R', U', R, U', R]
+  | r7 == b7 && b7 == g7 && g7 == w5 = [R, U', U', R', U', R, U', R']
   | r7 == r5 && r5 == o7 && o7 == o5 = 
       [R, U', U', R', U', R, U, R', U', R, U', R']
   | r7 == b5 && b5 == w3 && w3 == w7 = 
       [L, F', F', R', R', D, R, D', R, F', F', L']
   | r7 == w3 && w3 == w5 && w5 == o5 = [L, F, R', F', L', F, R, F']
-  | otherwise = throw $ CouldNotSolve "fiveToNine"
+  | otherwise = []
   where (r5, r7) = let sq = sel (r q) in (sq 5, sq 7)
         (o5, o7) = let sq = sel (o q) in (sq 5, sq 7)
         (g5, g7) = let sq = sel (g q) in (sq 5, sq 7)
@@ -667,51 +649,52 @@ fiveToNine q
         (w1, w3, w5, w7) = let sq = sel (w q) 
                            in (sq 1, sq 3, sq 5, sq 7)
 
-
+-- OLL
 nineToFinish :: Q -> [Op]
 nineToFinish q
-  | r6 == r7 && g5 == g7 && g5 /= g6 && o5 == o6 = 
-      [R, U, R', U', R', F, R, R, U', R', U', R, U, R', F] -- T-perm
-  | o5 == o6 && o5 == o7 && o5 /= o6 && r5 == r7 = 
-      if sel (r q) 5 == sel (b q) 6 
-      then [R, R, U, R, U, R', U', R', U', R', U, R']
-      else [R, U', R, U, R, U, R, U', R', U', R', R']
-  | r6 == r7 && b5 == b6 && r7 == o5 = 
-      [F, R, U', R', U', R, U, R', F', R, U, R', U', R', F, R, F']
-  | r5 == r7 && r5 == b6 && r6 == b7 = 
-      if sel (b q) 7 /= sel (b q) 5 
-      then [R', U', U', R, U', U', R', F, R, U, R', U', R', F', R, R, U']
-      else [R', L, F', R, R, L', L', B', R, R, L', L', F', R, L', D, D, R, R, L', L', U]
-  | r5 == r7 && r5 == g6 && r6 == g5 && g7 /= g5 =
-      [L, U, U, L', U, U, L, F', L', U', L, U, L, F, L', L', U]
-  | r5 == r7 && b5 == b7 && r5 == o6 && b5 == g6 = 
-      [M, M, U', M, M, U', U', M, M, U', M, M]
-  | r5 == r6 && r6 /= r7 && g5 == g7 = 
-      if sel (g q) 5 /= sel (g q) 6
-      then [R, R, D, Y, R', U, R', U', R, D', Y', R', R', F', U, F]
-      else [R, U, R', F', R, U, R', U', R', F, R, R, U', R', U']
-  | r7 == r6 && r6 /= r5 && b5 == b7 = 
-      if sel (b q) 5 /= sel (b q) 6 
-      then [L', L', D', Y', L, U', L, U, L', D, Y, L, L, F, U', F']
-      else [L', U', L, F, L', U', L, U, L, F', L', L', U, L, U]
-  | r5 == r6 && o5 == o7 && o7 == b6 = 
-      [F', U', F, R, R, D, Y, R', U, R, U', R, D', Y', R, R]
-  | r7 == r6 && o5 == o7 && o5 == g6 = 
-      [F, U, F', L', L', D', Y', L, U', L', U, L', D, Y, L', L']
-  | r7 == b5 && r5 == b6 && r6 == b7 && g6 == g5 = 
-      [R', U', F', R, U, R', U', R', F, R, R, U', R', U', R, U, R', U, R]
-  | r6 == r7 && g5 == g6 && g5 == b7 && r7 == o5 = 
-      [R', U, R', U', Y, R', F', R, R, U', R', U, R', F, R, F, Y']
-      
-  | r7 == r6 && b7 == b6 && o7 == o6 && o6 == r5 =
-      [R', U, R, U', R', F', U', F, R, U, R', F, R', F', R, U', R]
-  | r5 == r6 && b5 == b6 && o5 == o6 && o6 == r7 =
-      [L, U', L', U, L, F, U, F', L', U', L, F', L, F, L', U, R, L']
-  | r5 == b6 && b6 == o7 && r7 == g6 && g6 == o5 =
-      [R, B', R', F, R, B, R', F', R, B, R', F, R, B', R', F']
-  | g5 == g6 && g6 == g7 && r7 == b5 && o5 == b7 =
-      [R', U', F', R, U, R', U', R', F, R, R, U', R', U', R, U, R', U, R]
-  | otherwise = throw $ CouldNotSolve "nineToFinish"
+  | g6 == g7 && o5 == o6 && b5 == b7 && b7 == r6 = -- A1
+      A1p : [R, R, F, F, R', B', R, F, F, R', B, R']
+  | g6 == g7 && o5 == o6 && r5 == r7 && r7 == b6 = -- A2
+      A2p : [R, B', R, F, F, R', B, R, F, F, R', R']
+  | r6 == r7 && g5 == g7 && g5 /= g6 && o5 == o6 = -- T
+      Tp : [R, U, R', U', R', F, R, R, U', R', U', R, U, R', F']
+  | o5 == o6 && o5 == o7 && r5 /= r6 && r5 == r7 = 
+      if r5 == b6 
+      then U1p : [R, R, U, R, U, R', U', R', U', R', U, R'] -- U1
+      else U2p : [R, U', R, U, R, U, R, U', R', U', R', R'] -- U2
+  | r6 == r7 && b5 == b6 && r7 == o5 && b6 /= b7 = -- Y
+      Yp : [F, R, U', R', U', R, U, R', F', R, U, R', U', R', F, R, F']
+  | r5 == r7 && r5 == b6 && r6 == b7 && g5 == g6 = -- R2
+      R2p : [R', U', U', R, U', U', R', F, R, U, R', U', R', F', R, R, U']
+  | r5 == r7 && r5 == b6 && r6 == b7 && b5 == b7 = -- Z
+      Zp : [R', L, F', R, R, L', L', B', R, R, L', L', F', R', L, D, D, R, R, L', L', U]
+  | r5 == r7 && r5 == g6 && r6 == g5 && g7 /= g5 = -- R1
+      R1p : [L, U, U, L', U, U, L, F', L', U', L, U, L, F, L', L', U]
+  | r5 == r7 && b5 == b7 && r5 == o6 && b5 == g6 = -- H
+      Hp : [M, M, U', M, M, U', U', M, M, U', M, M]
+  | r5 == r6 && g5 == g7 && g7 == b6 && b7 == g6 = -- G1
+      G1p : [R, R, D, Y, R', U, R', U', R, D', Y', R', R', F', U, F]
+  | r5 == r6 && r6 == o7 && g5 == g6 && g6 == g7 = -- J2
+      J2p : [R, U, R', F', R, U, R', U', R', F, R, R, U', R', U']
+  | r7 == r6 && r6 == o5 && b5 == b7 && b7 == g6 = -- G3
+      G3p : [L', L', D', Y', L, U', L, U, L', D, Y, L, L, F, U', F']
+  | r7 == r6 && r6 == o5 && b5 == b6 && b6 == b7 = -- J1
+      J1p : [L', U', L, F, L', U', L, U, L, F', L', L', U, L, U]
+  | r5 == r6 && o5 == o7 && o7 == b6 && r7 /= r6 = -- G2
+      G2p : [F', U', F, R, R, D, Y, R', U, R, U', R, D', Y', R, R]
+  | r7 == r6 && o5 == o7 && o5 == g6 && r5 == b6 = -- G4
+      G4p : [F, U, F', L', L', D', Y', L, U', L', U, L', D, Y, L', L']
+  | r7 == b5 && r5 == b6 && r6 == b7 && g6 == g5 = -- F
+      Fp : [R', U', F', R, U, R', U', R', F, R, R, U', R', U', R, U, R', U, R]
+  | r6 == r7 && g5 == g6 && g5 == b7 && r7 == o5 = -- V
+      Vp : [R', U, R', U', Y, R', F', R, R, U', R', U, R', F, R, F, Y']
+  | r7 == r6 && b7 == b6 && o7 == o6 && o6 == r5 && b6 /= b5 && g5 /= g6 = -- N2
+      N2p : [R', U, R, U', R', F', U', F, R, U, R', F, R', F', R, U', R]
+  | r5 == r6 && b5 == b6 && o5 == o6 && o6 == r7 && b6 /= b7 = -- N1
+      N1p : [L, U', L', U, L, F, U, F', L', U', L, F', L, F, L', U, L']
+  | r5 == b6 && b6 == o7 && r7 == g6 && g6 == o5 = -- E
+      Ep : [R, B', R', F, R, B, R', F', R, B, R', F, R, B', R', F']
+  | otherwise = []
   where (r5, r6, r7) = let sq = sel (r q) in (sq 5, sq 6, sq 7)
         (g5, g6, g7) = let sq = sel (g q) in (sq 5, sq 6, sq 7)
         (o5, o6, o7) = let sq = sel (o q) in (sq 5, sq 6, sq 7)
@@ -720,10 +703,10 @@ nineToFinish q
 
 -- solver interfaces
 solve :: String -> [Op]
-solve str = nextSeq (applySeq (fromString str []) goal) 0 []
+solve str = solveQ $ applySeq (fromString str []) goal
 
-solve_check :: String -> IO ()
-solve_check str = do
+solve_check, solve_check' :: String -> IO ()
+solve_check' str = do
   let ins = fromString str []
   let outs = solve str
   let q_start = applySeq ins goal
@@ -733,17 +716,22 @@ solve_check str = do
   pr $ q_start
   putStrLn "Solution:"
   putStrLn $ show outs
+  putStrLn $ prSeq outs
   putStrLn "Solved:"
   pr $ applySeq outs q_start
+solve_check str =
+  catch (solve_check' str) $
+  \(msg::CouldNotSolve) -> putStrLn $ show msg
 
 solve_check_pat, solve_check_pat' :: String -> IO ()
 solve_check_pat' str = do
   let q_start = fromStringPos str
-  let outs = nextSeq q_start 0 []
+  let outs = solveQ q_start
   putStrLn "Scrambled:"
   pr $ q_start
   putStrLn "Solution:"
   putStrLn $ show outs
+  putStrLn $ prSeq outs
   putStrLn "Solved:"
   pr $ applySeq outs q_start
 solve_check_pat str =
@@ -753,11 +741,12 @@ solve_check_pat str =
 
 main :: IO ()
 main = do
-{-
+
   putStrLn $ "Input a scramble:"
   ins <- getLine
   solve_check ins
--}
+{-
   putStrLn $ "Input a scrambled pattern:"
   pat <- getLine
   solve_check_pat pat
+-}
