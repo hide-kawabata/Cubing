@@ -59,10 +59,7 @@ func fromString(_ str: String) -> [String] {
     let chars2 = chars.map({(c:Character) -> String in return "\(c)"})
     let array = Array(chars2)
 
-    print("fromString: str = " + str)
-
     func iter(_ xxs_arg: [String], _ acc_arg: [String]) -> [String] {
-        
         var xxs = xxs_arg
         var acc = acc_arg
 
@@ -78,11 +75,11 @@ func fromString(_ str: String) -> [String] {
         }
 
         if x == "R" || x == "U" || x == "B" || x == "L" || x == "F" ||
-             x == "D" || x == "Y" || x == "Z" || x == "M" {
+             x == "D" || x == "Y" || x == "Z" || x == "M" || x == "N" {
 
             if xs.count >= 1 {
                 let xs0 = xs[0]
-                if xs0 == "\'" {
+                if xs0 == "'" {
                     xs.remove(at: 0)
                     if xs.count >= 1 {
                         let xs1 = xs[0]
@@ -112,7 +109,7 @@ func fromString(_ str: String) -> [String] {
             }
         } else {
             acc.append(x)
-            acc.append("error")
+            acc.append("error_fromString")
             return acc
         }
     }
@@ -126,10 +123,14 @@ func fromString(_ str: String) -> [String] {
 func solveQ(_ q: Cube) -> [String] {
     var pair = (q, ["FstLayer"])
     pair = step(pair, setRY("N"))
+
     pair = step(pair, {(q: Cube) -> [String] in
                           return ["Y"] + setRY("Y")(q.dupCube().turn("Y")) + ["Y'"]})
+
+
     pair = step(pair, {(q: Cube) -> [String] in
                           return ["Y2"] + setRY("Y2")(q.dupCube().turn("Y2")) + ["Y2"]})
+
     pair = step(pair, {(q: Cube) -> [String] in
                           return ["Y'"] + setRY("Y'")(q.dupCube().turn("Y'")) + ["Y"]})
     pair = step(pair, {(q: Cube) -> [String] in ["SndLayer"]})
@@ -164,7 +165,6 @@ func solveQ(_ q: Cube) -> [String] {
     pair = step(pair, {(q: Cube) -> [String] in
                           return ["Y'"] + nineToFinish(q.dupCube().turn("Y'")) + ["Y"]})
     pair = step(pair, finishQ)
-
     let (_, ops) = pair
     return ops
 }
@@ -199,7 +199,7 @@ func rotc(_ op:String, _ c:String) -> String {
         }
     case "Y2":
         return rotc("Y", (rotc("Y", c)))
-    case "Y\'":
+    case "Y'":
         return rotc("Y", (rotc("Y2", c)))
     default:
         return c
@@ -221,8 +221,8 @@ func setRY(_ tc: String) -> (_ q: Cube) -> [String] {
 
     if sr(2) == red && sy(6) == yellow { return []
 //
-    } else if sr(2) == yellow && sy(6) == red { return ["F\'", "D", "R\'", "D\'"]
-    } else if sr(4) == yellow && sb(8) == red { return ["D, R', D'"]
+    } else if sr(2) == yellow && sy(6) == red { return ["F'", "D", "R'", "D'"]
+    } else if sr(4) == yellow && sb(8) == red { return ["D", "R'", "D'"]
     } else if sr(4) == red && sb(8) == yellow { return ["F"]
     } else if sr(6) == red && sw(2) == yellow { return ["F", "F"]
     } else if sr(6) == yellow && sw(2) == red { return ["U'", "R'", "F", "R"]
@@ -340,7 +340,7 @@ func setGR(_ tc: String) -> (_ q: Cube) -> [String] {
 //
     } else if sg(6) == red && sw(8) == green { return ["U", "U", "L'", "U", "L", "U", "F", "U'", "F'"]
     } else if sg(6) == green && sw(8) == red { return ["U", "F", "U'", "F'", "U'", "L'", "U", "L"]
-    } else { return ["error_setRY"]
+    } else { return ["error_setGR"]
     }
   }
   return setGR2
@@ -853,7 +853,7 @@ func solve_check(_ str: String) {
     print(q_start.pr())
     print("Solution:")
     print(outs)
-//    print(prSeq(outs))
+    print(prSeq(outs))
     print("Solved:")
     print(q_start.dupCube().applySeq(outs).pr())
 }
