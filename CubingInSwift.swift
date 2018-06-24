@@ -6,11 +6,21 @@
 
   This solver is based on the CFOP method without F2L.
 
-  Usage:
 
+  Usage: (look at the bottom of this file)
+
+   (a)
     $ ./CubingInSwift
     Input a scramble:
     R  L'  U'  D2  F2  U'  F'  R  D'  U'  B2
+    ...
+
+   or
+
+   (b)
+    $ ./CubingInSwift
+    Input a scrambled pattern:
+    OBOWBWYW, BRWYBOWW, ROROWRYG, BBYBGORY, GROBGGOY, RRYGGYWG
     ...
 
 
@@ -117,6 +127,31 @@ func fromString(_ str: String) -> [String] {
     return iter(array, [])
 }
 
+
+func fromStringPos(_ str: String) -> Cube {
+    let segs = str.characters.split(separator: ",")
+    let collist = segs.map({(seg) -> [String] in 
+                               let seg2 = seg.filter({$0 != " "})
+                               return seg2.map({(c) -> String in "\(c)"})})
+    let sw = collist[0]
+    let sr = collist[1]
+    let sb = collist[2]
+    let so = collist[3]
+    let sg = collist[4]
+    let sy = collist[5]
+    return Cube(w: Surface(c2i(sw[0]), c2i(sw[1]), c2i(sw[2]), c2i(sw[3]),
+                           c2i(sw[4]), c2i(sw[5]), c2i(sw[6]), c2i(sw[7])),
+                r: Surface(c2i(sr[0]), c2i(sr[1]), c2i(sr[2]), c2i(sr[3]),
+                           c2i(sr[4]), c2i(sr[5]), c2i(sr[6]), c2i(sr[7])),
+                b: Surface(c2i(sb[0]), c2i(sb[1]), c2i(sb[2]), c2i(sb[3]),
+                           c2i(sb[4]), c2i(sb[5]), c2i(sb[6]), c2i(sb[7])),
+                o: Surface(c2i(so[0]), c2i(so[1]), c2i(so[2]), c2i(so[3]),
+                           c2i(so[4]), c2i(so[5]), c2i(so[6]), c2i(so[7])),
+                g: Surface(c2i(sg[0]), c2i(sg[1]), c2i(sg[2]), c2i(sg[3]),
+                           c2i(sg[4]), c2i(sg[5]), c2i(sg[6]), c2i(sg[7])),
+                y: Surface(c2i(sy[0]), c2i(sy[1]), c2i(sy[2]), c2i(sy[3]),
+                           c2i(sy[4]), c2i(sy[5]), c2i(sy[6]), c2i(sy[7])))
+}
 
 
 // solver
@@ -495,14 +530,7 @@ func prSeq(_ ops_arg: [String]) -> String {
 
 
 class Surface {
-    var c1: Int
-    var c2: Int
-    var c3: Int
-    var c4: Int
-    var c5: Int
-    var c6: Int
-    var c7: Int
-    var c8: Int
+    var c1, c2, c3, c4, c5, c6, c7, c8: Int
     
     init(_ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int,
          _ c5: Int, _ c6: Int, _ c7: Int, _ c8: Int) {
@@ -619,208 +647,116 @@ class Cube {
 
     func turn(_ op:String) -> Cube {
         let oldCube = dupCube()
+        let (or, oy, oo, ow, ob, og) =
+          (oldCube.r, oldCube.y, oldCube.o, oldCube.w, oldCube.b, oldCube.g)
         switch op {
         case "R":
-            w.c3 = oldCube.r.c3
-            w.c4 = oldCube.r.c4
-            w.c5 = oldCube.r.c5
-            r.c3 = oldCube.y.c3
-            r.c4 = oldCube.y.c4
-            r.c5 = oldCube.y.c5
-            y.c3 = oldCube.o.c7
-            y.c4 = oldCube.o.c8
-            y.c5 = oldCube.o.c1
-            o.c1 = oldCube.w.c5
-            o.c8 = oldCube.w.c4
-            o.c7 = oldCube.w.c3
-
-            b.c1 = oldCube.b.c3
-            b.c2 = oldCube.b.c4
-            b.c3 = oldCube.b.c5
-            b.c4 = oldCube.b.c6
-            b.c5 = oldCube.b.c7
-            b.c6 = oldCube.b.c8
-            b.c7 = oldCube.b.c1
-            b.c8 = oldCube.b.c2
-
+            (w.c3, w.c4, w.c5) = (or.c3, or.c4, or.c5)
+            (r.c3, r.c4, r.c5) = (oy.c3, oy.c4, oy.c5)
+            (y.c3, y.c4, y.c5) = (oo.c7, oo.c8, oo.c1)
+            (o.c1, o.c8, o.c7) = (ow.c5, ow.c4, ow.c3)
+            (b.c1, b.c2, b.c3, b.c4) = (ob.c3, ob.c4, ob.c5, ob.c6)
+            (b.c5, b.c6, b.c7, b.c8) = (ob.c7, ob.c8, ob.c1, ob.c2)
+            return self
         case "Y":
-            w.c1 = oldCube.w.c3
-            w.c2 = oldCube.w.c4
-            w.c3 = oldCube.w.c5
-            w.c4 = oldCube.w.c6
-            w.c5 = oldCube.w.c7
-            w.c6 = oldCube.w.c8
-            w.c7 = oldCube.w.c1
-            w.c8 = oldCube.w.c2
-            r.c1 = oldCube.b.c1
-            r.c2 = oldCube.b.c2
-            r.c3 = oldCube.b.c3
-            r.c4 = oldCube.b.c4
-            r.c5 = oldCube.b.c5
-            r.c6 = oldCube.b.c6
-            r.c7 = oldCube.b.c7
-            r.c8 = oldCube.b.c8
-            b.c1 = oldCube.o.c1
-            b.c2 = oldCube.o.c2
-            b.c3 = oldCube.o.c3
-            b.c4 = oldCube.o.c4
-            b.c5 = oldCube.o.c5
-            b.c6 = oldCube.o.c6
-            b.c7 = oldCube.o.c7
-            b.c8 = oldCube.o.c8
-            o.c1 = oldCube.g.c1
-            o.c2 = oldCube.g.c2
-            o.c3 = oldCube.g.c3
-            o.c4 = oldCube.g.c4
-            o.c5 = oldCube.g.c5
-            o.c6 = oldCube.g.c6
-            o.c7 = oldCube.g.c7
-            o.c8 = oldCube.g.c8
-            g.c1 = oldCube.r.c1
-            g.c2 = oldCube.r.c2
-            g.c3 = oldCube.r.c3
-            g.c4 = oldCube.r.c4
-            g.c5 = oldCube.r.c5
-            g.c6 = oldCube.r.c6
-            g.c7 = oldCube.r.c7
-            g.c8 = oldCube.r.c8
-            y.c1 = oldCube.y.c7
-            y.c2 = oldCube.y.c8
-            y.c3 = oldCube.y.c1
-            y.c4 = oldCube.y.c2
-            y.c5 = oldCube.y.c3
-            y.c6 = oldCube.y.c4
-            y.c7 = oldCube.y.c5
-            y.c8 = oldCube.y.c6
+            (w.c1, w.c2, w.c3, w.c4) = (ow.c3, ow.c4, ow.c5, ow.c6)
+            (w.c5, w.c6, w.c7, w.c8) = (ow.c7, ow.c8, ow.c1, ow.c2)
+            (r.c1, r.c2, r.c3, r.c4) = (ob.c1, ob.c2, ob.c3, ob.c4)
+            (r.c5, r.c6, r.c7, r.c8) = (ob.c5, ob.c6, ob.c7, ob.c8)
+            (b.c1, b.c2, b.c3, b.c4) = (oo.c1, oo.c2, oo.c3, oo.c4)
+            (b.c5, b.c6, b.c7, b.c8) = (oo.c5, oo.c6, oo.c7, oo.c8)
+            (o.c1, o.c2, o.c3, o.c4) = (og.c1, og.c2, og.c3, og.c4)
+            (o.c5, o.c6, o.c7, o.c8) = (og.c5, og.c6, og.c7, og.c8)
+            (g.c1, g.c2, g.c3, g.c4) = (or.c1, or.c2, or.c3, or.c4)
+            (g.c5, g.c6, g.c7, g.c8) = (or.c5, or.c6, or.c7, or.c8)
+            (y.c1, y.c2, y.c3, y.c4) = (oy.c7, oy.c8, oy.c1, oy.c2)
+            (y.c5, y.c6, y.c7, y.c8) = (oy.c3, oy.c4, oy.c5, oy.c6)
+            return self
         case "Z":
-            w.c1 = oldCube.g.c3
-            w.c2 = oldCube.g.c4
-            w.c3 = oldCube.g.c5
-            w.c4 = oldCube.g.c6
-            w.c5 = oldCube.g.c7
-            w.c6 = oldCube.g.c8
-            w.c7 = oldCube.g.c1
-            w.c8 = oldCube.g.c2
-
-            r.c1 = oldCube.r.c3
-            r.c2 = oldCube.r.c4
-            r.c3 = oldCube.r.c5
-            r.c4 = oldCube.r.c6
-            r.c5 = oldCube.r.c7
-            r.c6 = oldCube.r.c8
-            r.c7 = oldCube.r.c1
-            r.c8 = oldCube.r.c2
-
-            b.c1 = oldCube.w.c3
-            b.c2 = oldCube.w.c4
-            b.c3 = oldCube.w.c5
-            b.c4 = oldCube.w.c6
-            b.c5 = oldCube.w.c7
-            b.c6 = oldCube.w.c8
-            b.c7 = oldCube.w.c1
-            b.c8 = oldCube.w.c2
-            
-            o.c1 = oldCube.o.c7
-            o.c2 = oldCube.o.c8
-            o.c3 = oldCube.o.c1
-            o.c4 = oldCube.o.c2
-            o.c5 = oldCube.o.c3
-            o.c6 = oldCube.o.c4
-            o.c7 = oldCube.o.c5
-            o.c8 = oldCube.o.c6
-
-            g.c1 = oldCube.y.c3
-            g.c2 = oldCube.y.c4
-            g.c3 = oldCube.y.c5
-            g.c4 = oldCube.y.c6
-            g.c5 = oldCube.y.c7
-            g.c6 = oldCube.y.c8
-            g.c7 = oldCube.y.c1
-            g.c8 = oldCube.y.c2
-
-            y.c1 = oldCube.b.c3
-            y.c2 = oldCube.b.c4
-            y.c3 = oldCube.b.c5
-            y.c4 = oldCube.b.c6
-            y.c5 = oldCube.b.c7
-            y.c6 = oldCube.b.c8
-            y.c7 = oldCube.b.c1
-            y.c8 = oldCube.b.c2
-
+            (w.c1, w.c2, w.c3, w.c4) = (og.c3, og.c4, og.c5, og.c6)
+            (w.c5, w.c6, w.c7, w.c8) = (og.c7, og.c8, og.c1, og.c2)
+            (r.c1, r.c2, r.c3, r.c4) = (or.c3, or.c4, or.c5, or.c6)
+            (r.c5, r.c6, r.c7, r.c8) = (or.c7, or.c8, or.c1, or.c2)
+            (b.c1, b.c2, b.c3, b.c4) = (ow.c3, ow.c4, ow.c5, ow.c6)
+            (b.c5, b.c6, b.c7, b.c8) = (ow.c7, ow.c8, ow.c1, ow.c2)
+            (o.c1, o.c2, o.c3, o.c4) = (oo.c7, oo.c8, oo.c1, oo.c2)
+            (o.c5, o.c6, o.c7, o.c8) = (oo.c3, oo.c4, oo.c5, oo.c6)
+            (g.c1, g.c2, g.c3, g.c4) = (oy.c3, oy.c4, oy.c5, oy.c6)
+            (g.c5, g.c6, g.c7, g.c8) = (oy.c7, oy.c8, oy.c1, oy.c2)
+            (y.c1, y.c2, y.c3, y.c4) = (ob.c3, ob.c4, ob.c5, ob.c6)
+            (y.c5, y.c6, y.c7, y.c8) = (ob.c7, ob.c8, ob.c1, ob.c2)
+            return self
         case "R'":
-            self.turn("R").turn("R").turn("R")
+            return self.turn("R").turn("R").turn("R")
         case "R2":
-            self.turn("R").turn("R")
+            return self.turn("R").turn("R")
         case "Y'":
-            self.turn("Y").turn("Y").turn("Y")
+            return self.turn("Y").turn("Y").turn("Y")
         case "Z2":
-            self.turn("Z").turn("Z")
+            return self.turn("Z").turn("Z")
         case "Z'":
-            self.turn("Z").turn("Z").turn("Z")
+            return self.turn("Z").turn("Z").turn("Z")
         case "L":
-            self.turn("Y").turn("Y").turn("R").turn("Y").turn("Y")
+            return self.applySeq(["Y", "Y", "R", "Y", "Y"])
         case "L2":
-            self.turn("L").turn("L")
+            return self.turn("L").turn("L")
         case "L'":
-            self.turn("Y").turn("Y").turn("R'").turn("Y").turn("Y")
+            return self.applySeq(["Y", "Y", "R'", "Y", "Y"])
         case "U":
-            self.turn("Z").turn("R").turn("Z'")
+            return self.turn("Z").turn("R").turn("Z'")
         case "U2":
-            self.turn("U").turn("U")
+            return self.turn("U").turn("U")
         case "U'":
-            self.turn("Z").turn("R'").turn("Z'")
+            return self.turn("Z").turn("R'").turn("Z'")
         case "D":
-            self.turn("Z'").turn("R").turn("Z")
+            return self.turn("Z'").turn("R").turn("Z")
         case "D2":
-            self.turn("D").turn("D")
+            return self.turn("D").turn("D")
         case "D'":
-            self.turn("Z'").turn("R'").turn("Z")
+            return self.turn("Z'").turn("R'").turn("Z")
         case "F":
-            self.turn("Y'").turn("R").turn("Y")
+            return self.turn("Y'").turn("R").turn("Y")
         case "F2":
-            self.turn("F").turn("F")
+            return self.turn("F").turn("F")
         case "F'":
-            self.turn("Y'").turn("R'").turn("Y")
+            return self.turn("Y'").turn("R'").turn("Y")
         case "B":
-            self.turn("Y").turn("R").turn("Y'")
+            return self.turn("Y").turn("R").turn("Y'")
         case "B2":
-            self.turn("B").turn("B")
+            return self.turn("B").turn("B")
         case "B'":
-            self.turn("Y").turn("R'").turn("Y'")
+            return self.turn("Y").turn("R'").turn("Y'")
         case "Y2":
-            self.turn("Y").turn("Y")
+            return self.turn("Y").turn("Y")
         case "Y'2":
-            self.turn("Y'").turn("Y'")
+            return self.turn("Y'").turn("Y'")
         case "Z'2":
-            self.turn("Z'").turn("Z'")
+            return self.turn("Z'").turn("Z'")
         case "U'2":
-            self.turn("U'").turn("U'")
+            return self.turn("U'").turn("U'")
         case "B'2":
-            self.turn("B'").turn("B'")
+            return self.turn("B'").turn("B'")
         case "D'2":
-            self.turn("D'").turn("D'")
+            return self.turn("D'").turn("D'")
         case "L'2":
-            self.turn("L'").turn("L'")
+            return self.turn("L'").turn("L'")
         case "R'2":
-            self.turn("R'").turn("R'")
+            return self.turn("R'").turn("R'")
         case "F'2":
-            self.turn("F'").turn("F'")
+            return self.turn("F'").turn("F'")
         case "M":
-            self.turn("Z").turn("D'").turn("U").turn("Y'").turn("Z'")
+            return self.applySeq(["Z", "D'", "U", "Y'", "Z'"])
         default:
-            self.turn("R").turn("R'")
+            return self.turn("R").turn("R'")
         }
-        return self
     }
 
     func turn2(_ q:Cube, _ op:String) -> Cube {
-        q.turn(op)
-        return q
+        return q.turn(op)
     }
 
     func applySeq(_ l:[String]) -> Cube {
-        l.reduce(self, turn2)
-        return self
+        return l.reduce(self, turn2)
     }
 }
 
@@ -858,10 +794,30 @@ func solve_check(_ str: String) {
     print(q_start.dupCube().applySeq(outs).pr())
 }
 
+func solve_check_pat(_ str: String) {
+    let q_start = fromStringPos(str)
+    let outs = solveQ(q_start)
+    print("Scrambled:")
+    print(q_start.pr())
+    print("Solution:")
+    print(outs)
+    print(prSeq(outs))
+    print("Solved:")
+    print(q_start.dupCube().applySeq(outs).pr())
+}
 
+/**************************************************************/
+
+/*
 print("Input a scramble:")
 let ins = readLine(strippingNewline:true)
 if let ins2 = ins {
     solve_check(ins2)
 }
+*/
 
+print("Input a scrambled pattern:")
+let pat = readLine(strippingNewline:true)
+if let pat2 = pat {
+    solve_check_pat(pat2)
+}
