@@ -30,9 +30,6 @@
 
 */
 
-import Cocoa
-
-
 // helper functions
 func i2c(_ num: Int) -> String {
     var c: String
@@ -65,10 +62,6 @@ func c2i(_ c: String) -> Int {
 
 // simple parser
 func fromString(_ str: String) -> [String] {
-    let chars = str.characters
-    let chars2 = chars.map({(c:Character) -> String in return "\(c)"})
-    let array = Array(chars2)
-
     func iter(_ xxs_arg: [String], _ acc_arg: [String]) -> [String] {
         var xxs = xxs_arg
         var acc = acc_arg
@@ -86,7 +79,6 @@ func fromString(_ str: String) -> [String] {
 
         if x == "R" || x == "U" || x == "B" || x == "L" || x == "F" ||
              x == "D" || x == "Y" || x == "Z" || x == "M" || x == "N" {
-
             if xs.count >= 1 {
                 let xs0 = xs[0]
                 if xs0 == "'" {
@@ -124,15 +116,14 @@ func fromString(_ str: String) -> [String] {
         }
     }
 
-    return iter(array, [])
+    return iter(str.characters.map({"\($0)"}), [])
 }
 
 
 func fromStringPos(_ str: String) -> Cube {
     let segs = str.characters.split(separator: ",")
-    let collist = segs.map({(seg) -> [String] in 
-                               let seg2 = seg.filter({$0 != " "})
-                               return seg2.map({(c) -> String in "\(c)"})})
+    let collist = segs.map({$0.filter({$0 != " "}).map({"\($0)"})})
+
     let sw = collist[0]
     let sr = collist[1]
     let sb = collist[2]
@@ -158,47 +149,28 @@ func fromStringPos(_ str: String) -> Cube {
 func solveQ(_ q: Cube) -> [String] {
     var pair = (q, ["FstLayer"])
     pair = step(pair, setRY("N"))
-
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y"] + setRY("Y")(q.dupCube().turn("Y")) + ["Y'"]})
-
-
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y2"] + setRY("Y2")(q.dupCube().turn("Y2")) + ["Y2"]})
-
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y'"] + setRY("Y'")(q.dupCube().turn("Y'")) + ["Y"]})
-    pair = step(pair, {(q: Cube) -> [String] in ["SndLayer"]})
+    pair = step(pair, {["Y"] + setRY("Y")($0.dupCube().turn("Y")) + ["Y'"]})
+    pair = step(pair, {["Y2"] + setRY("Y2")($0.dupCube().turn("Y2")) + ["Y2"]})
+    pair = step(pair, {["Y'"] + setRY("Y'")($0.dupCube().turn("Y'")) + ["Y"]})
+    pair = step(pair, {(_) in ["SndLayer"]})
     pair = step(pair, setYGR("N"))
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y"] + setYGR("Y")(q.dupCube().turn("Y")) + ["Y'"]})
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y2"] + setYGR("Y2")(q.dupCube().turn("Y2")) + ["Y2"]})
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y'"] + setYGR("Y'")(q.dupCube().turn("Y'")) + ["Y"]})
+    pair = step(pair, {["Y"] + setYGR("Y")($0.dupCube().turn("Y")) + ["Y'"]})
+    pair = step(pair, {["Y2"] + setYGR("Y2")($0.dupCube().turn("Y2")) + ["Y2"]})
+    pair = step(pair, {["Y'"] + setYGR("Y'")($0.dupCube().turn("Y'")) + ["Y"]})
     pair = step(pair, setGR("N"))
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y"] + setGR("Y")(q.dupCube().turn("Y")) + ["Y'"]})
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y2"] + setGR("Y2")(q.dupCube().turn("Y2")) + ["Y2"]})
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y'"] + setGR("Y'")(q.dupCube().turn("Y'")) + ["Y"]})
+    pair = step(pair, {["Y"] + setGR("Y")($0.dupCube().turn("Y")) + ["Y'"]})
+    pair = step(pair, {["Y2"] + setGR("Y2")($0.dupCube().turn("Y2")) + ["Y2"]})
+    pair = step(pair, {["Y'"] + setGR("Y'")($0.dupCube().turn("Y'")) + ["Y"]})
     pair = step(pair, oneToThree)
     pair = step(pair, threeToFive)
     pair = step(pair, fiveToNine)
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y"] + fiveToNine(q.dupCube().turn("Y")) + ["Y'"]})
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y2"] + fiveToNine(q.dupCube().turn("Y2")) + ["Y2"]})
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y'"] + fiveToNine(q.dupCube().turn("Y'")) + ["Y"]})
+    pair = step(pair, {["Y"] + fiveToNine($0.dupCube().turn("Y")) + ["Y'"]})
+    pair = step(pair, {["Y2"] + fiveToNine($0.dupCube().turn("Y2")) + ["Y2"]})
+    pair = step(pair, {["Y'"] + fiveToNine($0.dupCube().turn("Y'")) + ["Y"]})
     pair = step(pair, nineToFinish)
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y"] + nineToFinish(q.dupCube().turn("Y")) + ["Y'"]})
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y2"] + nineToFinish(q.dupCube().turn("Y2")) + ["Y2"]})
-    pair = step(pair, {(q: Cube) -> [String] in
-                          return ["Y'"] + nineToFinish(q.dupCube().turn("Y'")) + ["Y"]})
+    pair = step(pair, {["Y"] + nineToFinish($0.dupCube().turn("Y")) + ["Y'"]})
+    pair = step(pair, {["Y2"] + nineToFinish($0.dupCube().turn("Y2")) + ["Y2"]})
+    pair = step(pair, {["Y'"] + nineToFinish($0.dupCube().turn("Y'")) + ["Y"]})
     pair = step(pair, finishQ)
     let (_, ops) = pair
     return ops
@@ -561,17 +533,12 @@ class Surface {
     }
     
     func check(_ c: String) -> Bool {
-        if getColor(1) == c && getColor(2) == c && getColor(3) == c &&
-             getColor(4) == c && getColor(5) == c && getColor(6) == c {
-            return true
-        } else {
-            return false
-        }
+        return getColor(1) == c && getColor(2) == c && getColor(3) == c &&
+          getColor(4) == c && getColor(5) == c && getColor(6) == c
     }
 
     func dupSurface() -> Surface {
-        let dupS = Surface(c1, c2, c3, c4, c5, c6, c7, c8)
-        return dupS
+        return Surface(c1, c2, c3, c4, c5, c6, c7, c8)
     }
 }
 
@@ -629,20 +596,15 @@ class Cube {
             + spc + y123 + "\n"
     }
 
-
     func dupCube() -> Cube {
-        let dupC = Cube(w: w.dupSurface(), r: r.dupSurface(), b: b.dupSurface(),
-                        o: o.dupSurface(), g: g.dupSurface(), y: y.dupSurface())
-        return dupC
+        return Cube(w: w.dupSurface(), r: r.dupSurface(), b: b.dupSurface(),
+                    o: o.dupSurface(), g: g.dupSurface(), y: y.dupSurface())
     }
     
+    
     func check() -> Bool {
-        if w.check("W") && r.check("R") && b.check("B") &&
-             o.check("O") && g.check("G") && y.check("Y") {
-            return true
-        } else {
-            return false
-        }
+        return w.check("W") && r.check("R") && b.check("B") &&
+          o.check("O") && g.check("G") && y.check("Y")
     }
 
     func turn(_ op:String) -> Cube {
@@ -808,16 +770,16 @@ func solve_check_pat(_ str: String) {
 
 /**************************************************************/
 
-/*
 print("Input a scramble:")
 let ins = readLine(strippingNewline:true)
 if let ins2 = ins {
     solve_check(ins2)
 }
-*/
 
+/*
 print("Input a scrambled pattern:")
 let pat = readLine(strippingNewline:true)
 if let pat2 = pat {
     solve_check_pat(pat2)
 }
+*/
