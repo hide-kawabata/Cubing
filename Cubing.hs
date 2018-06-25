@@ -329,29 +329,29 @@ exchangeOp :: [Op] -> [Op]
 exchangeOp [] = []
 exchangeOp l@(x:[]) = l
 -- Y
-exchangeOp (Y:U:xs) = exchangeOp (U:Y:xs)
-exchangeOp (Y:U':xs) = exchangeOp (U':Y:xs)
-exchangeOp (Y':U:xs) = exchangeOp (U:Y':xs)
-exchangeOp (Y':U':xs) = exchangeOp (U':Y':xs)
-exchangeOp (Y:D:xs) = exchangeOp (D:Y:xs)
-exchangeOp (Y:D':xs) = exchangeOp (D':Y:xs)
-exchangeOp (Y':D:xs) = exchangeOp (D:Y':xs)
-exchangeOp (Y':D':xs) = exchangeOp (D':Y':xs)
+exchangeOp (Y:U:xs) = U:exchangeOp (Y:xs)
+exchangeOp (Y:U':xs) = U':exchangeOp (Y:xs)
+exchangeOp (Y':U:xs) = U:exchangeOp (Y':xs)
+exchangeOp (Y':U':xs) = U':exchangeOp (Y':xs)
+exchangeOp (Y:D:xs) = D:exchangeOp (Y:xs)
+exchangeOp (Y:D':xs) = D':exchangeOp (Y:xs)
+exchangeOp (Y':D:xs) = D:exchangeOp (Y':xs)
+exchangeOp (Y':D':xs) = D':exchangeOp (Y':xs)
 -- D
-exchangeOp (D:U:xs) = exchangeOp (U:D:xs)
-exchangeOp (D:U':xs) = exchangeOp (U':D:xs)
-exchangeOp (D':U:xs) = exchangeOp (U:D':xs)
-exchangeOp (D':U':xs) = exchangeOp (U':D':xs)
+exchangeOp (D:U:xs) = U:exchangeOp (D:xs)
+exchangeOp (D:U':xs) = U':exchangeOp (D:xs)
+exchangeOp (D':U:xs) = U:exchangeOp (D':xs)
+exchangeOp (D':U':xs) = U':exchangeOp (D':xs)
 -- B
-exchangeOp (B:F:xs) = exchangeOp (F:B:xs)
-exchangeOp (B:F':xs) = exchangeOp (F':B:xs)
-exchangeOp (B':F:xs) = exchangeOp (F:B':xs)
-exchangeOp (B':F':xs) = exchangeOp (F':B':xs)
+exchangeOp (B:F:xs) = F:exchangeOp (B:xs)
+exchangeOp (B:F':xs) = F':exchangeOp (B:xs)
+exchangeOp (B':F:xs) = F:exchangeOp (B':xs)
+exchangeOp (B':F':xs) = F':exchangeOp (B':xs)
 -- L
-exchangeOp (L:R:xs) = exchangeOp (R:L:xs)
-exchangeOp (L:R':xs) = exchangeOp (R':L:xs)
-exchangeOp (L':R:xs) = exchangeOp (R:L':xs)
-exchangeOp (L':R':xs) = exchangeOp (R':L':xs)
+exchangeOp (L:R:xs) = R:exchangeOp (L:xs)
+exchangeOp (L:R':xs) = R':exchangeOp (L:xs)
+exchangeOp (L':R:xs) = R:exchangeOp (L':xs)
+exchangeOp (L':R':xs) = R':exchangeOp (L':xs)
 --
 exchangeOp (x:xs) = x:exchangeOp xs
 
@@ -402,7 +402,7 @@ reduceOp l = l
 iterOpt :: ([Op] -> [Op]) -> [Op] -> [Op]
 iterOpt f l
   | l == l' = l'
-  | otherwise = f l'
+  | otherwise = iterOpt f l'
   where l' = f l
 
 mergeOp :: [Op] -> [Op]

@@ -145,6 +145,212 @@ func fromStringPos(_ str: String) -> Cube {
 }
 
 
+func checkRevOp(_ x: String, _ y: String) -> Bool {
+    switch (x, y) {
+    case ("U", "U'"): return true
+    case ("L", "L'"): return true
+    case ("R", "R'"): return true
+    case ("B", "B'"): return true
+    case ("D", "D'"): return true
+    case ("F", "F'"): return true
+    case ("Y", "Y'"): return true
+    case ("Z", "Z'"): return true
+    case ("U'", "U"): return true
+    case ("L'", "L"): return true
+    case ("R'", "R"): return true
+    case ("B'", "B"): return true
+    case ("D'", "D"): return true
+    case ("F'", "F"): return true
+    case ("Y'", "Y"): return true
+    case ("Z'", "Z"): return true
+    default: return false
+    }
+}
+
+func revOp(_ x: String) -> String {
+    switch x {
+    case "U": return "U'"
+    case "L": return "L'"
+    case "R": return "R'"
+    case "B": return "B'"
+    case "D": return "D'"
+    case "F": return "F'"
+    case "Y": return "Y'"
+    case "Z": return "Z'"
+    case "U'": return "U"
+    case "L'": return "L"
+    case "R'": return "R"
+    case "B'": return "B"
+    case "D'": return "D"
+    case "F'": return "F"
+    case "Y'": return "Y"
+    case "Z'": return "Z"
+    default: return x
+    }
+}
+
+func expandOp(_ xxs_arg: [String]) -> [String] {
+    var xxs = xxs_arg
+    if xxs.count == 0 { // length: 0
+        return []
+    }
+    let x = xxs.remove(at: 0) // length: >=1
+    let xs = xxs
+    switch x {
+    case "R2": return ["R", "R"] + expandOp(xs)
+    case "L2": return ["L", "L"] + expandOp(xs)
+    case "D2": return ["D", "D"] + expandOp(xs)
+    case "U2": return ["U", "U"] + expandOp(xs)
+    case "B2": return ["B", "B"] + expandOp(xs)
+    case "F2": return ["F", "F"] + expandOp(xs)
+    case "Y2": return ["Y", "Y"] + expandOp(xs)
+    case "Z2": return ["Z", "Z"] + expandOp(xs)
+    case "R'2": return ["R", "R"] + expandOp(xs)
+    case "L'2": return ["L", "L"] + expandOp(xs)
+    case "D'2": return ["D", "D"] + expandOp(xs)
+    case "U'2": return ["U", "U"] + expandOp(xs)
+    case "B'2": return ["B", "B"] + expandOp(xs)
+    case "F'2": return ["F", "F"] + expandOp(xs)
+    case "Y'2": return ["Y", "Y"] + expandOp(xs)
+    case "Z'2": return ["Z", "Z"] + expandOp(xs)
+    default: return [x] + expandOp(xs)
+    }
+}
+
+
+func exchangeOp(_ xxs_arg: [String]) -> [String] {
+    var xxs = xxs_arg
+    if xxs.count == 0 { // length: 0
+        return []
+    }
+    let x = xxs.remove(at: 0)
+    if xxs.count == 0 { // length: 1
+        return [x]
+    }
+    let y = xxs.remove(at: 0) // length: >=2
+    let xs = xxs
+    switch (x, y) {
+        // Y
+    case ("Y", "U"): return [y] + exchangeOp([x] + xs)
+    case ("Y", "U'"): return [y] + exchangeOp([x] + xs)
+    case ("Y'", "U"): return [y] + exchangeOp([x] + xs)
+    case ("Y'", "U'"): return [y] + exchangeOp([x] + xs)
+    case ("Y", "D"): return [y] + exchangeOp([x] + xs)
+    case ("Y", "D'"): return [y] + exchangeOp([x] + xs)
+    case ("Y'", "D"): return [y] + exchangeOp([x] + xs)
+    case ("Y'", "D'"): return [y] + exchangeOp([x] + xs)
+                       // D
+    case ("D", "U"): return [y] + exchangeOp([x] + xs)
+    case ("D", "U'"): return [y] + exchangeOp([x] + xs)
+    case ("D'", "U"): return [y] + exchangeOp([x] + xs)
+    case ("D'", "U'"): return [y] + exchangeOp([x] + xs)
+                       // B
+    case ("B", "F"): return [y] + exchangeOp([x] + xs)
+    case ("B", "F'"): return [y] + exchangeOp([x] + xs)
+    case ("B'", "F"): return [y] + exchangeOp([x] + xs)
+    case ("B'", "F'"): return [y] + exchangeOp([x] + xs)
+                       // L
+    case ("L", "R"): return [y] + exchangeOp([x] + xs)
+    case ("L", "R'"): return [y] + exchangeOp([x] + xs)
+    case ("L'", "R"): return [y] + exchangeOp([x] + xs)
+    case ("L'", "R'"): return [y] + exchangeOp([x] + xs)
+                       //
+    default: return [x] + exchangeOp([y] + xs)
+    }
+}
+
+
+func reduceOp(_ xxs_arg: [String]) -> [String] {
+    var xxs = xxs_arg
+    if xxs.count == 0 { // length: 0
+        return []
+    }
+    let x = xxs.remove(at: 0)
+    let xs = xxs
+    if xxs.count == 0 { // length: 1
+        return [x]
+    }
+    let y = xxs.remove(at: 0) // length: >=2
+    let ys = xxs
+    if checkRevOp(x, y) {
+        return reduceOp(ys)
+    }
+    if xxs.count >= 2 { // length: >=4
+        let z = xxs.remove(at: 0)
+        let zs = xxs
+        let w = xxs.remove(at: 0)
+        let ws = xxs
+        if x == y && y == z && z == w {
+            return reduceOp(ws)
+        } else if x == y && y == z {
+            return reduceOp([revOp(x)] + zs)
+        } else {
+            return [x] + reduceOp(xs)
+        }
+    } else if xxs.count == 1 { // length: 3
+        let z = xxs.remove(at: 0)
+        if x == y && y == z {
+            return [revOp(x)]
+        } else {
+            return [x] + reduceOp(xs)
+        }
+    } else { // length: 2, x != y
+        return xxs_arg
+    }
+}
+
+
+func iterOpt(_ f: ([String]) -> [String], _ l: [String]) -> [String] {
+    let l2 = f(l)
+    if l == l2 {
+        return l2
+    } else {
+        return iterOpt(f, l2)
+    }
+}
+
+func mergeOp(_ xxs_arg: [String]) -> [String] {
+    var xxs = xxs_arg
+    if xxs.count == 0 { // length: 0
+        return []
+    }
+    let x = xxs.remove(at: 0)
+    let xs = xxs
+    if xxs.count == 0 { // length: 1
+        return [x]
+    }
+    let y = xxs.remove(at: 0)
+    let ys = xxs
+    switch (x, y) {
+    case ("U", "U"): return ["U2"] + mergeOp(ys)
+    case ("B", "B"): return ["B2"] + mergeOp(ys)
+    case ("F", "F"): return ["F2"] + mergeOp(ys)
+    case ("D", "D"): return ["D2"] + mergeOp(ys)
+    case ("L", "L"): return ["L2"] + mergeOp(ys)
+    case ("R", "R"): return ["R2"] + mergeOp(ys)
+    case ("Y", "Y"): return ["Y2"] + mergeOp(ys)
+    case ("Z", "Z"): return ["Z2"] + mergeOp(ys)
+    case ("U'", "U'"): return ["U2"] + mergeOp(ys)
+    case ("B'", "B'"): return ["B2"] + mergeOp(ys)
+    case ("F'", "F'"): return ["F2"] + mergeOp(ys)
+    case ("D'", "D'"): return ["D2"] + mergeOp(ys)
+    case ("L'", "L'"): return ["L2"] + mergeOp(ys)
+    case ("R'", "R'"): return ["R2"] + mergeOp(ys)
+    case ("Y'", "Y'"): return ["Y2"] + mergeOp(ys)
+    case ("Z'", "Z'"): return ["Z2"] + mergeOp(ys)
+    default: return [x] + mergeOp(xs)
+    }
+}
+
+func optimizeOp(_ l: [String]) -> [String] {
+    var l = expandOp(l)
+    l = iterOpt(exchangeOp, l)
+    l = iterOpt(reduceOp, l)
+    l = mergeOp(l)
+    return l
+}
+
+
 // solver
 func solveQ(_ q: Cube) -> [String] {
     var pair = (q, ["FstLayer"])
@@ -173,7 +379,7 @@ func solveQ(_ q: Cube) -> [String] {
     pair = step(pair, {["Y'"] + nineToFinish($0.dupCube().turn("Y'")) + ["Y"]})
     pair = step(pair, finishQ)
     let (_, ops) = pair
-    return ops
+    return optimizeOp(ops)
 }
 
 func step(_ pair: (Cube, [String]), _ slvr: (Cube) -> [String]) -> (Cube, [String]) {
@@ -585,15 +791,15 @@ class Cube {
         let y8_4 = "\(fy(8))Y\(fy(4))"
         let y123 = "\(fy(1))\(fy(2))\(fy(3))"
         let spc = "   "
-        return spc + w765 + "\n"
-            + spc + w8_4 + "\n"
-            + spc + w123 + "\n"
-            + g765 + r765 + b765 + o765 + "\n"
-            + g8_4 + r8_4 + b8_4 + o8_4 + "\n"
-            + g123 + r123 + b123 + o123 + "\n"
-            + spc + y765 + "\n"
-            + spc + y8_4 + "\n"
-            + spc + y123 + "\n"
+        return spc + " " + w765 + "\n"
+            + spc + " " + w8_4 + "\n"
+            + spc + " " + w123 + "\n"
+            + g765 + " " + r765 + " " + b765 + " " + o765 + "\n"
+            + g8_4 + " " + r8_4 + " " + b8_4 + " " + o8_4 + "\n"
+            + g123 + " " + r123 + " " + b123 + " " + o123 + "\n"
+            + spc + " " + y765 + "\n"
+            + spc + " " + y8_4 + "\n"
+            + spc + " " + y123 + "\n"
     }
 
     func dupCube() -> Cube {
@@ -708,9 +914,10 @@ class Cube {
             return self.turn("F'").turn("F'")
         case "M":
             return self.applySeq(["Z", "D'", "U", "Y'", "Z'"])
-        default:
-            return self.turn("R").turn("R'")
+        default: break
+//            return self.turn("R").turn("R'")
         }
+        return self
     }
 
     func turn2(_ q:Cube, _ op:String) -> Cube {
