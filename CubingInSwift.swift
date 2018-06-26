@@ -30,53 +30,131 @@
 
 */
 
-// helper functions
-func i2c(_ num: Int) -> String {
-    var c: String
-    switch num {
-    case 1: c = "W"
-    case 2: c = "R"
-    case 3: c = "B"
-    case 4: c = "O"
-    case 5: c = "G"
-    case 6: c = "Y"
-    default: c = "_"
-    }
-    return c
+enum Color : String {
+    case White = "W"
+    case Red = "R"
+    case Blue = "B"
+    case Orange = "O"
+    case Green = "G"
+    case Yellow = "Y"
 }
 
-func c2i(_ c: String) -> Int {
-    var i: Int
+enum Op : String {
+    case R; case R_ = "R'"; case U; case U_ = "U'"; case B; case B_ = "B'"; case L; case L_ = "L'"
+    case F; case F_ = "F'"; case D; case D_ = "D'"; case Y; case Y_ = "Y'"; case Z; case Z_ = "Z'"
+    case N; case M; case M_ = "M'"; case Y2; case Y_2 = "Y'2"; case Z2; case Z_2 = "Z'2"
+    case R2; case R_2 = "R'2"; case U2; case U_2 = "U'2"; case B2; case B_2 = "B'2"
+    case L2; case L_2 = "L'2"; case F2; case F_2 = "F'2"; case D2; case D_2 = "D'2"
+//
+    case FstLayer; case SndLayer; case PLL1p 
+    case PLL21p; case PLL22p; case PLL23p; case PLL24p; case PLL25p; case PLL26p
+    case A2p; case A1p; case Tp; case U1p; case U2p; case Yp; case R2p
+    case Zp; case R1p; case Hp; case G2p; case J2p; case G4p; case J1p 
+    case G1p; case G3p; case Fp; case Vp; case N2p; case N1p; case Ep
+}
+
+
+// helper functions
+func s2c(_ c: String) -> Color {
     switch c {
-    case "W": i = 1
-    case "R": i = 2
-    case "B": i = 3
-    case "O": i = 4
-    case "G": i = 5
-    case "Y": i = 6
-    default: i = -1
+    case "W": return Color.White
+    case "R": return Color.Red
+    case "B": return Color.Blue
+    case "O": return Color.Orange
+    case "G": return Color.Green
+    case "Y": return Color.Yellow
+    default: return Color.White // error s2c
     }
-    return i
+}
+
+
+func s2op(_ s: String) -> Op {
+    switch s {
+    case "R": return Op.R
+    case "R'": return Op.R_
+    case "U": return Op.U
+    case "U'": return Op.U_
+    case "B": return Op.B
+    case "B'": return Op.B_
+    case "L": return Op.L
+    case "L'": return Op.L_
+    case "F": return Op.F
+    case "F'": return Op.F_
+    case "D": return Op.D
+    case "D'": return Op.D_
+    case "Y": return Op.Y
+    case "Y'": return Op.Y_
+    case "Z": return Op.Z
+    case "Z'": return Op.Z_
+    case "N": return Op.N
+    case "M": return Op.M
+    case "M'": return Op.M_
+    case "Y2": return Op.Y2
+    case "Y'2": return Op.Y_2
+    case "Z2": return Op.Z2
+    case "Z'2": return Op.Z_2
+    case "R2": return Op.R2
+    case "R'2": return Op.R_2
+    case "U2": return Op.U2
+    case "U'2": return Op.U_2
+    case "B2": return Op.B2
+    case "B'2": return Op.B_2
+    case "L2": return Op.L2
+    case "L'2": return Op.L_2
+    case "F2": return Op.F2
+    case "F'2": return Op.F_2
+    case "D2": return Op.D2
+    case "D'2": return Op.D_2
+           
+//
+    case "FstLayer": return Op.FstLayer
+    case "SndLayer": return Op.SndLayer
+    case "PLL1p": return Op.PLL1p
+    case "PLL21p": return Op.PLL21p
+    case "PLL22p": return Op.PLL22p
+    case "PLL23p": return Op.PLL23p
+    case "PLL24p": return Op.PLL24p
+    case "PLL25p": return Op.PLL25p
+    case "PLL26p": return Op.PLL26p
+    case "A2p": return Op.A2p
+    case "A1p": return Op.A1p
+    case "Tp": return Op.Tp
+    case "U1p": return Op.U1p
+    case "U2p": return Op.U2p
+    case "Yp": return Op.Yp
+    case "R2p": return Op.R2p
+    case "Zp": return Op.Zp
+    case "R1p": return Op.R1p
+    case "Hp": return Op.Hp
+    case "G2p": return Op.G2p
+    case "J2p": return Op.J2p
+    case "G4p": return Op.G4p
+    case "J1p": return Op.J1p
+    case "G1p": return Op.G1p
+    case "G3p": return Op.G3p
+    case "Fp": return Op.Fp
+    case "Vp": return Op.Vp
+    case "N2p": return Op.N2p
+    case "N1p": return Op.N1p
+    case "Ep": return Op.Ep
+    default: return Op.N // error s2op
+    }
 }
 
 
 // simple parser
-func fromString(_ str: String) -> [String] {
-    func iter(_ xxs_arg: [String], _ acc_arg: [String]) -> [String] {
+func fromString(_ str: String) -> [Op] {
+    func iter(_ xxs_arg: [String], _ acc_arg: [Op]) -> [Op] {
         var xxs = xxs_arg
         var acc = acc_arg
-
-        if xxs.count == 0 {
+        if xxs.count == 0 { // length: 0
             return acc
         }
-
-        let x = xxs.remove(at: 0) // |xxs| >= 1
+        let x = xxs.remove(at: 0) // length: >= 1
         var xs = xxs
-
         if x == " " || x == "," {
             return iter(xs, acc)
         }
-
         if x == "R" || x == "U" || x == "B" || x == "L" || x == "F" ||
              x == "D" || x == "Y" || x == "Z" || x == "M" || x == "N" {
             if xs.count >= 1 {
@@ -87,35 +165,34 @@ func fromString(_ str: String) -> [String] {
                         let xs1 = xs[0]
                         if xs1 == "2" { // e.g. U'2
                             xs.remove(at: 0)
-                            acc.append(x + xs0 + xs1)
+                            acc.append(s2op(x + xs0 + xs1))
                             return iter(xs, acc)
                         } else {
-                            acc.append(x + xs0)
+                            acc.append(s2op(x + xs0))
                             return iter(xs, acc)
                         }
                     } else {
-                        acc.append(x + xs0)
+                        acc.append(s2op(x + xs0))
                         return iter(xs, acc)
                     }
                 } else if xs0 == "2" {
                     xs.remove(at: 0)
-                    acc.append(x + xs0)
+                    acc.append(s2op(x + xs0))
                     return iter(xs, acc)
                 } else {
-                    acc.append(x)
+                    acc.append(s2op(x))
                     return iter(xs, acc)
                 }
             } else {
-                acc.append(x)
+                acc.append(s2op(x))
                 return iter(xs, acc)
             }
         } else {
-            acc.append(x)
-            acc.append("error_fromString")
+            acc.append(s2op(x))
+//            acc.append("error_fromString")
             return acc
         }
     }
-
     return iter(str.characters.map({"\($0)"}), [])
 }
 
@@ -123,73 +200,50 @@ func fromString(_ str: String) -> [String] {
 func fromStringPos(_ str: String) -> Cube {
     let segs = str.characters.split(separator: ",")
     let collist = segs.map({$0.filter({$0 != " "}).map({"\($0)"})})
-
     let sw = collist[0]
     let sr = collist[1]
     let sb = collist[2]
     let so = collist[3]
     let sg = collist[4]
     let sy = collist[5]
-    return Cube(w: Surface(c2i(sw[0]), c2i(sw[1]), c2i(sw[2]), c2i(sw[3]),
-                           c2i(sw[4]), c2i(sw[5]), c2i(sw[6]), c2i(sw[7])),
-                r: Surface(c2i(sr[0]), c2i(sr[1]), c2i(sr[2]), c2i(sr[3]),
-                           c2i(sr[4]), c2i(sr[5]), c2i(sr[6]), c2i(sr[7])),
-                b: Surface(c2i(sb[0]), c2i(sb[1]), c2i(sb[2]), c2i(sb[3]),
-                           c2i(sb[4]), c2i(sb[5]), c2i(sb[6]), c2i(sb[7])),
-                o: Surface(c2i(so[0]), c2i(so[1]), c2i(so[2]), c2i(so[3]),
-                           c2i(so[4]), c2i(so[5]), c2i(so[6]), c2i(so[7])),
-                g: Surface(c2i(sg[0]), c2i(sg[1]), c2i(sg[2]), c2i(sg[3]),
-                           c2i(sg[4]), c2i(sg[5]), c2i(sg[6]), c2i(sg[7])),
-                y: Surface(c2i(sy[0]), c2i(sy[1]), c2i(sy[2]), c2i(sy[3]),
-                           c2i(sy[4]), c2i(sy[5]), c2i(sy[6]), c2i(sy[7])))
+    return Cube(w: Surface(s2c(sw[0]), s2c(sw[1]), s2c(sw[2]), s2c(sw[3]),
+                           s2c(sw[4]), s2c(sw[5]), s2c(sw[6]), s2c(sw[7])),
+                r: Surface(s2c(sr[0]), s2c(sr[1]), s2c(sr[2]), s2c(sr[3]),
+                           s2c(sr[4]), s2c(sr[5]), s2c(sr[6]), s2c(sr[7])),
+                b: Surface(s2c(sb[0]), s2c(sb[1]), s2c(sb[2]), s2c(sb[3]),
+                           s2c(sb[4]), s2c(sb[5]), s2c(sb[6]), s2c(sb[7])),
+                o: Surface(s2c(so[0]), s2c(so[1]), s2c(so[2]), s2c(so[3]),
+                           s2c(so[4]), s2c(so[5]), s2c(so[6]), s2c(so[7])),
+                g: Surface(s2c(sg[0]), s2c(sg[1]), s2c(sg[2]), s2c(sg[3]),
+                           s2c(sg[4]), s2c(sg[5]), s2c(sg[6]), s2c(sg[7])),
+                y: Surface(s2c(sy[0]), s2c(sy[1]), s2c(sy[2]), s2c(sy[3]),
+                           s2c(sy[4]), s2c(sy[5]), s2c(sy[6]), s2c(sy[7])))
 }
 
 
-func checkRevOp(_ x: String, _ y: String) -> Bool {
-    switch (x, y) {
-    case ("U", "U'"): return true
-    case ("L", "L'"): return true
-    case ("R", "R'"): return true
-    case ("B", "B'"): return true
-    case ("D", "D'"): return true
-    case ("F", "F'"): return true
-    case ("Y", "Y'"): return true
-    case ("Z", "Z'"): return true
-    case ("U'", "U"): return true
-    case ("L'", "L"): return true
-    case ("R'", "R"): return true
-    case ("B'", "B"): return true
-    case ("D'", "D"): return true
-    case ("F'", "F"): return true
-    case ("Y'", "Y"): return true
-    case ("Z'", "Z"): return true
-    default: return false
-    }
-}
-
-func revOp(_ x: String) -> String {
+func revOp(_ x: Op) -> Op {
     switch x {
-    case "U": return "U'"
-    case "L": return "L'"
-    case "R": return "R'"
-    case "B": return "B'"
-    case "D": return "D'"
-    case "F": return "F'"
-    case "Y": return "Y'"
-    case "Z": return "Z'"
-    case "U'": return "U"
-    case "L'": return "L"
-    case "R'": return "R"
-    case "B'": return "B"
-    case "D'": return "D"
-    case "F'": return "F"
-    case "Y'": return "Y"
-    case "Z'": return "Z"
+    case Op.U: return Op.U_
+    case Op.L: return Op.L_
+    case Op.R: return Op.R_
+    case Op.B: return Op.B_
+    case Op.D: return Op.D_
+    case Op.F: return Op.F_
+    case Op.Y: return Op.Y_
+    case Op.Z: return Op.Z_
+    case Op.U_: return Op.U
+    case Op.L_: return Op.L
+    case Op.R_: return Op.R
+    case Op.B_: return Op.B
+    case Op.D_: return Op.D
+    case Op.F_: return Op.F
+    case Op.Y_: return Op.Y
+    case Op.Z_: return Op.Z
     default: return x
     }
 }
 
-func expandOp(_ xxs_arg: [String]) -> [String] {
+func expandOp(_ xxs_arg: [Op]) -> [Op] {
     var xxs = xxs_arg
     if xxs.count == 0 { // length: 0
         return []
@@ -197,28 +251,28 @@ func expandOp(_ xxs_arg: [String]) -> [String] {
     let x = xxs.remove(at: 0) // length: >=1
     let xs = xxs
     switch x {
-    case "R2": return ["R", "R"] + expandOp(xs)
-    case "L2": return ["L", "L"] + expandOp(xs)
-    case "D2": return ["D", "D"] + expandOp(xs)
-    case "U2": return ["U", "U"] + expandOp(xs)
-    case "B2": return ["B", "B"] + expandOp(xs)
-    case "F2": return ["F", "F"] + expandOp(xs)
-    case "Y2": return ["Y", "Y"] + expandOp(xs)
-    case "Z2": return ["Z", "Z"] + expandOp(xs)
-    case "R'2": return ["R", "R"] + expandOp(xs)
-    case "L'2": return ["L", "L"] + expandOp(xs)
-    case "D'2": return ["D", "D"] + expandOp(xs)
-    case "U'2": return ["U", "U"] + expandOp(xs)
-    case "B'2": return ["B", "B"] + expandOp(xs)
-    case "F'2": return ["F", "F"] + expandOp(xs)
-    case "Y'2": return ["Y", "Y"] + expandOp(xs)
-    case "Z'2": return ["Z", "Z"] + expandOp(xs)
+    case Op.R2: return [Op.R, Op.R] + expandOp(xs)
+    case Op.L2: return [Op.L, Op.L] + expandOp(xs)
+    case Op.D2: return [Op.D, Op.D] + expandOp(xs)
+    case Op.U2: return [Op.U, Op.U] + expandOp(xs)
+    case Op.B2: return [Op.B, Op.B] + expandOp(xs)
+    case Op.F2: return [Op.F, Op.F] + expandOp(xs)
+    case Op.Y2: return [Op.Y, Op.Y] + expandOp(xs)
+    case Op.Z2: return [Op.Z, Op.Z] + expandOp(xs)
+    case Op.R_2: return [Op.R, Op.R] + expandOp(xs)
+    case Op.L_2: return [Op.L, Op.L] + expandOp(xs)
+    case Op.D_2: return [Op.D, Op.D] + expandOp(xs)
+    case Op.U_2: return [Op.U, Op.U] + expandOp(xs)
+    case Op.B_2: return [Op.B, Op.B] + expandOp(xs)
+    case Op.F_2: return [Op.F, Op.F] + expandOp(xs)
+    case Op.Y_2: return [Op.Y, Op.Y] + expandOp(xs)
+    case Op.Z_2: return [Op.Z, Op.Z] + expandOp(xs)
     default: return [x] + expandOp(xs)
     }
 }
 
 
-func exchangeOp(_ xxs_arg: [String]) -> [String] {
+func exchangeOp(_ xxs_arg: [Op]) -> [Op] {
     var xxs = xxs_arg
     if xxs.count == 0 { // length: 0
         return []
@@ -231,36 +285,36 @@ func exchangeOp(_ xxs_arg: [String]) -> [String] {
     let xs = xxs
     switch (x, y) {
         // Y
-    case ("Y", "U"): return [y] + exchangeOp([x] + xs)
-    case ("Y", "U'"): return [y] + exchangeOp([x] + xs)
-    case ("Y'", "U"): return [y] + exchangeOp([x] + xs)
-    case ("Y'", "U'"): return [y] + exchangeOp([x] + xs)
-    case ("Y", "D"): return [y] + exchangeOp([x] + xs)
-    case ("Y", "D'"): return [y] + exchangeOp([x] + xs)
-    case ("Y'", "D"): return [y] + exchangeOp([x] + xs)
-    case ("Y'", "D'"): return [y] + exchangeOp([x] + xs)
+    case (Op.Y, Op.U): return [y] + exchangeOp([x] + xs)
+    case (Op.Y, Op.U_): return [y] + exchangeOp([x] + xs)
+    case (Op.Y_, Op.U): return [y] + exchangeOp([x] + xs)
+    case (Op.Y_, Op.U_): return [y] + exchangeOp([x] + xs)
+    case (Op.Y, Op.D): return [y] + exchangeOp([x] + xs)
+    case (Op.Y, Op.D_): return [y] + exchangeOp([x] + xs)
+    case (Op.Y_, Op.D): return [y] + exchangeOp([x] + xs)
+    case (Op.Y_, Op.D_): return [y] + exchangeOp([x] + xs)
                        // D
-    case ("D", "U"): return [y] + exchangeOp([x] + xs)
-    case ("D", "U'"): return [y] + exchangeOp([x] + xs)
-    case ("D'", "U"): return [y] + exchangeOp([x] + xs)
-    case ("D'", "U'"): return [y] + exchangeOp([x] + xs)
+    case (Op.D, Op.U): return [y] + exchangeOp([x] + xs)
+    case (Op.D, Op.U_): return [y] + exchangeOp([x] + xs)
+    case (Op.D_, Op.U): return [y] + exchangeOp([x] + xs)
+    case (Op.D_, Op.U_): return [y] + exchangeOp([x] + xs)
                        // B
-    case ("B", "F"): return [y] + exchangeOp([x] + xs)
-    case ("B", "F'"): return [y] + exchangeOp([x] + xs)
-    case ("B'", "F"): return [y] + exchangeOp([x] + xs)
-    case ("B'", "F'"): return [y] + exchangeOp([x] + xs)
+    case (Op.B, Op.F): return [y] + exchangeOp([x] + xs)
+    case (Op.B, Op.F_): return [y] + exchangeOp([x] + xs)
+    case (Op.B_, Op.F): return [y] + exchangeOp([x] + xs)
+    case (Op.B_, Op.F_): return [y] + exchangeOp([x] + xs)
                        // L
-    case ("L", "R"): return [y] + exchangeOp([x] + xs)
-    case ("L", "R'"): return [y] + exchangeOp([x] + xs)
-    case ("L'", "R"): return [y] + exchangeOp([x] + xs)
-    case ("L'", "R'"): return [y] + exchangeOp([x] + xs)
+    case (Op.L, Op.R): return [y] + exchangeOp([x] + xs)
+    case (Op.L, Op.R_): return [y] + exchangeOp([x] + xs)
+    case (Op.L_, Op.R): return [y] + exchangeOp([x] + xs)
+    case (Op.L_, Op.R_): return [y] + exchangeOp([x] + xs)
                        //
     default: return [x] + exchangeOp([y] + xs)
     }
 }
 
 
-func reduceOp(_ xxs_arg: [String]) -> [String] {
+func reduceOp(_ xxs_arg: [Op]) -> [Op] {
     var xxs = xxs_arg
     if xxs.count == 0 { // length: 0
         return []
@@ -272,7 +326,7 @@ func reduceOp(_ xxs_arg: [String]) -> [String] {
     }
     let y = xxs.remove(at: 0) // length: >=2
     let ys = xxs
-    if checkRevOp(x, y) {
+    if x == revOp(y) {
         return reduceOp(ys)
     }
     if xxs.count >= 2 { // length: >=4
@@ -300,7 +354,7 @@ func reduceOp(_ xxs_arg: [String]) -> [String] {
 }
 
 
-func iterOpt(_ f: ([String]) -> [String], _ l: [String]) -> [String] {
+func iterOpt(_ f: ([Op]) -> [Op], _ l: [Op]) -> [Op] {
     let l2 = f(l)
     if l == l2 {
         return l2
@@ -309,7 +363,7 @@ func iterOpt(_ f: ([String]) -> [String], _ l: [String]) -> [String] {
     }
 }
 
-func mergeOp(_ xxs_arg: [String]) -> [String] {
+func mergeOp(_ xxs_arg: [Op]) -> [Op] {
     var xxs = xxs_arg
     if xxs.count == 0 { // length: 0
         return []
@@ -322,27 +376,27 @@ func mergeOp(_ xxs_arg: [String]) -> [String] {
     let y = xxs.remove(at: 0)
     let ys = xxs
     switch (x, y) {
-    case ("U", "U"): return ["U2"] + mergeOp(ys)
-    case ("B", "B"): return ["B2"] + mergeOp(ys)
-    case ("F", "F"): return ["F2"] + mergeOp(ys)
-    case ("D", "D"): return ["D2"] + mergeOp(ys)
-    case ("L", "L"): return ["L2"] + mergeOp(ys)
-    case ("R", "R"): return ["R2"] + mergeOp(ys)
-    case ("Y", "Y"): return ["Y2"] + mergeOp(ys)
-    case ("Z", "Z"): return ["Z2"] + mergeOp(ys)
-    case ("U'", "U'"): return ["U2"] + mergeOp(ys)
-    case ("B'", "B'"): return ["B2"] + mergeOp(ys)
-    case ("F'", "F'"): return ["F2"] + mergeOp(ys)
-    case ("D'", "D'"): return ["D2"] + mergeOp(ys)
-    case ("L'", "L'"): return ["L2"] + mergeOp(ys)
-    case ("R'", "R'"): return ["R2"] + mergeOp(ys)
-    case ("Y'", "Y'"): return ["Y2"] + mergeOp(ys)
-    case ("Z'", "Z'"): return ["Z2"] + mergeOp(ys)
+    case (Op.U, Op.U): return [Op.U2] + mergeOp(ys)
+    case (Op.B, Op.B): return [Op.B2] + mergeOp(ys)
+    case (Op.F, Op.F): return [Op.F2] + mergeOp(ys)
+    case (Op.D, Op.D): return [Op.D2] + mergeOp(ys)
+    case (Op.L, Op.L): return [Op.L2] + mergeOp(ys)
+    case (Op.R, Op.R): return [Op.R2] + mergeOp(ys)
+    case (Op.Y, Op.Y): return [Op.Y2] + mergeOp(ys)
+    case (Op.Z, Op.Z): return [Op.Z2] + mergeOp(ys)
+    case (Op.U_, Op.U_): return [Op.U2] + mergeOp(ys)
+    case (Op.B_, Op.B_): return [Op.B2] + mergeOp(ys)
+    case (Op.F_, Op.F_): return [Op.F2] + mergeOp(ys)
+    case (Op.D_, Op.D_): return [Op.D2] + mergeOp(ys)
+    case (Op.L_, Op.L_): return [Op.L2] + mergeOp(ys)
+    case (Op.R_, Op.R_): return [Op.R2] + mergeOp(ys)
+    case (Op.Y_, Op.Y_): return [Op.Y2] + mergeOp(ys)
+    case (Op.Z_, Op.Z_): return [Op.Z2] + mergeOp(ys)
     default: return [x] + mergeOp(xs)
     }
 }
 
-func optimizeOp(_ l: [String]) -> [String] {
+func optimizeOp(_ l: [Op]) -> [Op] {
     var l = expandOp(l)
     l = iterOpt(exchangeOp, l)
     l = iterOpt(reduceOp, l)
@@ -352,68 +406,68 @@ func optimizeOp(_ l: [String]) -> [String] {
 
 
 // solver
-func solveQ(_ q: Cube) -> [String] {
-    var pair = (q, ["FstLayer"])
-    pair = step(pair, setRY("N"))
-    pair = step(pair, {["Y"] + setRY("Y")($0.dupCube().turn("Y")) + ["Y'"]})
-    pair = step(pair, {["Y2"] + setRY("Y2")($0.dupCube().turn("Y2")) + ["Y2"]})
-    pair = step(pair, {["Y'"] + setRY("Y'")($0.dupCube().turn("Y'")) + ["Y"]})
-    pair = step(pair, {(_) in ["SndLayer"]})
-    pair = step(pair, setYGR("N"))
-    pair = step(pair, {["Y"] + setYGR("Y")($0.dupCube().turn("Y")) + ["Y'"]})
-    pair = step(pair, {["Y2"] + setYGR("Y2")($0.dupCube().turn("Y2")) + ["Y2"]})
-    pair = step(pair, {["Y'"] + setYGR("Y'")($0.dupCube().turn("Y'")) + ["Y"]})
-    pair = step(pair, setGR("N"))
-    pair = step(pair, {["Y"] + setGR("Y")($0.dupCube().turn("Y")) + ["Y'"]})
-    pair = step(pair, {["Y2"] + setGR("Y2")($0.dupCube().turn("Y2")) + ["Y2"]})
-    pair = step(pair, {["Y'"] + setGR("Y'")($0.dupCube().turn("Y'")) + ["Y"]})
+func solveQ(_ q: Cube) -> [Op] {
+    var pair = (q, [Op.FstLayer])
+    pair = step(pair, setRY(Op.N))
+    pair = step(pair, {[Op.Y] + setRY(Op.Y)($0.dupCube().turn(Op.Y)) + [Op.Y_]})
+    pair = step(pair, {[Op.Y2] + setRY(Op.Y2)($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
+    pair = step(pair, {[Op.Y_] + setRY(Op.Y_)($0.dupCube().turn(Op.Y_)) + [Op.Y]})
+    pair = step(pair, {(_) in [Op.SndLayer]})
+    pair = step(pair, setYGR(Op.N))
+    pair = step(pair, {[Op.Y] + setYGR(Op.Y)($0.dupCube().turn(Op.Y)) + [Op.Y_]})
+    pair = step(pair, {[Op.Y2] + setYGR(Op.Y2)($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
+    pair = step(pair, {[Op.Y_] + setYGR(Op.Y_)($0.dupCube().turn(Op.Y_)) + [Op.Y]})
+    pair = step(pair, setGR(Op.N))
+    pair = step(pair, {[Op.Y] + setGR(Op.Y)($0.dupCube().turn(Op.Y)) + [Op.Y_]})
+    pair = step(pair, {[Op.Y2] + setGR(Op.Y2)($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
+    pair = step(pair, {[Op.Y_] + setGR(Op.Y_)($0.dupCube().turn(Op.Y_)) + [Op.Y]})
     pair = step(pair, oneToThree)
     pair = step(pair, threeToFive)
     pair = step(pair, fiveToNine)
-    pair = step(pair, {["Y"] + fiveToNine($0.dupCube().turn("Y")) + ["Y'"]})
-    pair = step(pair, {["Y2"] + fiveToNine($0.dupCube().turn("Y2")) + ["Y2"]})
-    pair = step(pair, {["Y'"] + fiveToNine($0.dupCube().turn("Y'")) + ["Y"]})
+    pair = step(pair, {[Op.Y] + fiveToNine($0.dupCube().turn(Op.Y)) + [Op.Y_]})
+    pair = step(pair, {[Op.Y2] + fiveToNine($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
+    pair = step(pair, {[Op.Y_] + fiveToNine($0.dupCube().turn(Op.Y_)) + [Op.Y]})
     pair = step(pair, nineToFinish)
-    pair = step(pair, {["Y"] + nineToFinish($0.dupCube().turn("Y")) + ["Y'"]})
-    pair = step(pair, {["Y2"] + nineToFinish($0.dupCube().turn("Y2")) + ["Y2"]})
-    pair = step(pair, {["Y'"] + nineToFinish($0.dupCube().turn("Y'")) + ["Y"]})
+    pair = step(pair, {[Op.Y] + nineToFinish($0.dupCube().turn(Op.Y)) + [Op.Y_]})
+    pair = step(pair, {[Op.Y2] + nineToFinish($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
+    pair = step(pair, {[Op.Y_] + nineToFinish($0.dupCube().turn(Op.Y_)) + [Op.Y]})
     pair = step(pair, finishQ)
     let (_, ops) = pair
     return optimizeOp(ops)
 }
 
-func step(_ pair: (Cube, [String]), _ slvr: (Cube) -> [String]) -> (Cube, [String]) {
+func step(_ pair: (Cube, [Op]), _ slvr: (Cube) -> [Op]) -> (Cube, [Op]) {
     let (q, ops) = pair
     let ops2 = slvr(q)
     let q2 = q.dupCube().applySeq(ops2)
     return (q2, ops + ops2)
 }
 
-func finishQ(_ q: Cube) -> [String] {
+func finishQ(_ q: Cube) -> [Op] {
     if q.check() { return []
-    } else if q.dupCube().turn("U").check() { return ["U"]
-    } else if q.dupCube().turn("U2").check() { return ["U2"]
-    } else if q.dupCube().turn("U'").check() { return ["U'"]
-    } else { return ["error_finishQ"]
+    } else if q.dupCube().turn(Op.U).check() { return [Op.U]
+    } else if q.dupCube().turn(Op.U2).check() { return [Op.U2]
+    } else if q.dupCube().turn(Op.U_).check() { return [Op.U_]
+    } else { return [Op.U] // error_finishQ
     }
 }
 
 
-func rotc(_ op:String, _ c:String) -> String {
+func rotc(_ op:Op, _ c:Color) -> Color {
     switch op {
-    case "N": return c
-    case "Y":
+    case Op.N: return c
+    case Op.Y:
         switch c {
-        case "R": return "B"
-        case "B": return "O"
-        case "O": return "G"
-        case "G": return "R"
+        case Color.Red: return Color.Blue
+        case Color.Blue: return Color.Orange
+        case Color.Orange: return Color.Green
+        case Color.Green: return Color.Red
         default: return c
         }
-    case "Y2":
-        return rotc("Y", (rotc("Y", c)))
-    case "Y'":
-        return rotc("Y", (rotc("Y2", c)))
+    case Op.Y2:
+        return rotc(Op.Y, (rotc(Op.Y, c)))
+    case Op.Y_:
+        return rotc(Op.Y, (rotc(Op.Y2, c)))
     default:
         return c
     }
@@ -421,171 +475,171 @@ func rotc(_ op:String, _ c:String) -> String {
 }
 
 
-func setRY(_ tc: String) -> (_ q: Cube) -> [String] {
-  func setRY2(_ q: Cube) -> [String] {
+func setRY(_ tc: Op) -> (_ q: Cube) -> [Op] {
+  func setRY2(_ q: Cube) -> [Op] {
     let sr = q.r.getColor
     let sy = q.y.getColor
     let sb = q.b.getColor
     let sw = q.w.getColor
     let sg = q.g.getColor
     let so = q.o.getColor
-    let yellow = rotc(tc, "Y")
-    let red = rotc(tc, "R")
+    let yellow = rotc(tc, Color.Yellow)
+    let red = rotc(tc, Color.Red)
 
     if sr(2) == red && sy(6) == yellow { return []
 //
-    } else if sr(2) == yellow && sy(6) == red { return ["F'", "D", "R'", "D'"]
-    } else if sr(4) == yellow && sb(8) == red { return ["D", "R'", "D'"]
-    } else if sr(4) == red && sb(8) == yellow { return ["F"]
-    } else if sr(6) == red && sw(2) == yellow { return ["F", "F"]
-    } else if sr(6) == yellow && sw(2) == red { return ["U'", "R'", "F", "R"]
-    } else if sr(8) == yellow && sg(4) == red { return ["D'", "L", "D"]
-    } else if sr(8) == red && sg(4) == yellow { return ["F'"]
+    } else if sr(2) == yellow && sy(6) == red { return [Op.F_, Op.D, Op.R_, Op.D_]
+    } else if sr(4) == yellow && sb(8) == red { return [Op.D, Op.R_, Op.D_]
+    } else if sr(4) == red && sb(8) == yellow { return [Op.F]
+    } else if sr(6) == red && sw(2) == yellow { return [Op.F, Op.F]
+    } else if sr(6) == yellow && sw(2) == red { return [Op.U_, Op.R_, Op.F, Op.R]
+    } else if sr(8) == yellow && sg(4) == red { return [Op.D_, Op.L, Op.D]
+    } else if sr(8) == red && sg(4) == yellow { return [Op.F_]
 //
-    } else if sb(2) == red && sy(4) == yellow { return ["R", "D", "R'", "D'"]
-    } else if sb(2) == yellow && sy(4) == red { return ["R", "F"]
-    } else if sb(4) == yellow && so(8) == red { return ["B", "U", "U", "B'", "F", "F"]
-    } else if sb(4) == red && so(8) == yellow { return ["R'", "U", "R", "F", "F"]
-    } else if sb(6) == red && sw(4) == yellow { return ["U", "F", "F"]
-    } else if sb(6) == yellow && sw(4) == red { return ["R'", "F", "R"]
+    } else if sb(2) == red && sy(4) == yellow { return [Op.R, Op.D, Op.R_, Op.D_]
+    } else if sb(2) == yellow && sy(4) == red { return [Op.R, Op.F]
+    } else if sb(4) == yellow && so(8) == red { return [Op.B, Op.U, Op.U, Op.B_, Op.F, Op.F]
+    } else if sb(4) == red && so(8) == yellow { return [Op.R_, Op.U, Op.R, Op.F, Op.F]
+    } else if sb(6) == red && sw(4) == yellow { return [Op.U, Op.F, Op.F]
+    } else if sb(6) == yellow && sw(4) == red { return [Op.R_, Op.F, Op.R]
 //
-    } else if so(2) == red && sy(2) == yellow { return ["B", "B", "U", "U", "F", "F"]
-    } else if so(2) == yellow && sy(2) == red { return ["B", "B", "U", "R'", "F", "R"]
-    } else if so(4) == yellow && sg(8) == red { return ["L", "U'", "L'", "F", "F"]
-    } else if so(4) == red && sg(8) == yellow { return ["B'", "U'", "B", "U'", "F", "F"]
-    } else if so(6) == red && sw(6) == yellow { return ["U", "U", "F", "F"]
-    } else if so(6) == yellow && sw(6) == red { return ["U'", "L", "F'", "L'"]
+    } else if so(2) == red && sy(2) == yellow { return [Op.B, Op.B, Op.U, Op.U, Op.F, Op.F]
+    } else if so(2) == yellow && sy(2) == red { return [Op.B, Op.B, Op.U, Op.R_, Op.F, Op.R]
+    } else if so(4) == yellow && sg(8) == red { return [Op.L, Op.U_, Op.L_, Op.F, Op.F]
+    } else if so(4) == red && sg(8) == yellow { return [Op.B_, Op.U_, Op.B, Op.U_, Op.F, Op.F]
+    } else if so(6) == red && sw(6) == yellow { return [Op.U, Op.U, Op.F, Op.F]
+    } else if so(6) == yellow && sw(6) == red { return [Op.U_, Op.L, Op.F_, Op.L_]
 //
-    } else if sg(2) == red && sy(8) == yellow { return ["L'", "D'", "L", "D"]
-    } else if sg(2) == yellow && sy(8) == red { return ["L'", "F'"]
-    } else if sg(6) == red && sw(8) == yellow { return ["U'", "F", "F"]
-    } else if sg(6) == yellow && sw(8) == red { return ["L", "F'", "L'"]
-    } else { return ["error_setRY"]
+    } else if sg(2) == red && sy(8) == yellow { return [Op.L_, Op.D_, Op.L, Op.D]
+    } else if sg(2) == yellow && sy(8) == red { return [Op.L_, Op.F_]
+    } else if sg(6) == red && sw(8) == yellow { return [Op.U_, Op.F, Op.F]
+    } else if sg(6) == yellow && sw(8) == red { return [Op.L, Op.F_, Op.L_]
+    } else { return [Op.U] // error_setRY
     }
   }
   return setRY2
 }
 
 
-func setYGR(_ tc: String) -> (_ q: Cube) -> [String] {
-  func setYGR2(_ q: Cube) -> [String] {
+func setYGR(_ tc: Op) -> (_ q: Cube) -> [Op] {
+  func setYGR2(_ q: Cube) -> [Op] {
     let sr = q.r.getColor
     let sb = q.b.getColor
     let sg = q.g.getColor
     let so = q.o.getColor
-    let yellow = rotc(tc, "Y")
-    let green = rotc(tc, "G")
-    let red = rotc(tc, "R")
+    let yellow = rotc(tc, Color.Yellow)
+    let green = rotc(tc, Color.Green)
+    let red = rotc(tc, Color.Red)
 
     if sr(1) == red && sg(3) == green { return []
 //
-    } else if sr(1) == yellow && sg(3) == red { return ["F", "U", "F'", "U'", "F", "U", "F'"]
-    } else if sr(1) == green && sg(3) == yellow { return ["L'", "U'", "L", "U", "L'", "U'", "L"]
+    } else if sr(1) == yellow && sg(3) == red { return [Op.F, Op.U, Op.F_, Op.U_, Op.F, Op.U, Op.F_]
+    } else if sr(1) == green && sg(3) == yellow { return [Op.L_, Op.U_, Op.L, Op.U, Op.L_, Op.U_, Op.L]
 //
-    } else if sr(3) == yellow && sb(1) == green { return ["F'", "U'", "F", "U", "U", "L'", "U'", "L"]
-    } else if sr(3) == red && sb(1) == yellow { return ["R", "U", "R'", "F", "U", "F'"]
-    } else if sr(3) == green && sb(1) == red { return ["R", "U", "R'", "L'", "U'", "L"]
+    } else if sr(3) == yellow && sb(1) == green { return [Op.F_, Op.U_, Op.F, Op.U, Op.U, Op.L_, Op.U_, Op.L]
+    } else if sr(3) == red && sb(1) == yellow { return [Op.R, Op.U, Op.R_, Op.F, Op.U, Op.F_]
+    } else if sr(3) == green && sb(1) == red { return [Op.R, Op.U, Op.R_, Op.L_, Op.U_, Op.L]
 //
-    } else if sr(5) == green && sb(7) == yellow { return ["L'", "U", "L"]
-    } else if sr(5) == yellow && sb(7) == red { return ["U", "L'", "U'", "L"]
-    } else if sr(5) == red && sb(7) == green { return ["U", "L'", "U", "L", "U'", "U'", "L'", "U'", "L"]
+    } else if sr(5) == green && sb(7) == yellow { return [Op.L_, Op.U, Op.L]
+    } else if sr(5) == yellow && sb(7) == red { return [Op.U, Op.L_, Op.U_, Op.L]
+    } else if sr(5) == red && sb(7) == green { return [Op.U, Op.L_, Op.U, Op.L, Op.U_, Op.U_, Op.L_, Op.U_, Op.L]
 //
-    } else if sr(7) == red && sg(5) == yellow { return ["L'", "U'", "L"]
-    } else if sr(7) == green && sg(5) == red { return ["F", "U", "U", "F'", "U'", "F", "U", "F'"]
-    } else if sr(7) == yellow && sg(5) == green { return ["F", "U", "F'"]
+    } else if sr(7) == red && sg(5) == yellow { return [Op.L_, Op.U_, Op.L]
+    } else if sr(7) == green && sg(5) == red { return [Op.F, Op.U, Op.U, Op.F_, Op.U_, Op.F, Op.U, Op.F_]
+    } else if sr(7) == yellow && sg(5) == green { return [Op.F, Op.U, Op.F_]
 //
-    } else if sb(3) == green && so(1) == red { return ["R'", "U'", "U'", "R", "F", "U", "F'"]
-    } else if sb(3) == yellow && so(1) == green { return ["R'", "U'", "R", "U'", "L'", "U'", "L"]
-    } else if sb(3) == red && so(1) == yellow { return ["B", "U", "B'", "U", "F", "U", "F'"]
+    } else if sb(3) == green && so(1) == red { return [Op.R_, Op.U_, Op.U_, Op.R, Op.F, Op.U, Op.F_]
+    } else if sb(3) == yellow && so(1) == green { return [Op.R_, Op.U_, Op.R, Op.U_, Op.L_, Op.U_, Op.L]
+    } else if sb(3) == red && so(1) == yellow { return [Op.B, Op.U, Op.B_, Op.U, Op.F, Op.U, Op.F_]
 //
-    } else if sb(5) == green && so(7) == yellow { return ["U", "U", "F", "U", "F'"]
-    } else if sb(5) == red && so(7) == green { return ["U", "U", "L'", "U", "L", "U", "U", "L'", "U'", "L"]
-    } else if sb(5) == yellow && so(7) == red { return ["U", "U", "L'", "U'", "L"]
+    } else if sb(5) == green && so(7) == yellow { return [Op.U, Op.U, Op.F, Op.U, Op.F_]
+    } else if sb(5) == red && so(7) == green { return [Op.U, Op.U, Op.L_, Op.U, Op.L, Op.U, Op.U, Op.L_, Op.U_, Op.L]
+    } else if sb(5) == yellow && so(7) == red { return [Op.U, Op.U, Op.L_, Op.U_, Op.L]
 //
-    } else if so(3) == red && sg(1) == yellow { return ["L", "U", "L'", "U", "U", "F", "U", "F'"]
-    } else if so(3) == yellow && sg(1) == green { return ["B'", "U'", "B", "L'", "U'", "L"]
-    } else if so(3) == green && sg(1) == red { return ["L", "U'", "L'", "U'", "F", "U", "F'"]
+    } else if so(3) == red && sg(1) == yellow { return [Op.L, Op.U, Op.L_, Op.U, Op.U, Op.F, Op.U, Op.F_]
+    } else if so(3) == yellow && sg(1) == green { return [Op.B_, Op.U_, Op.B, Op.L_, Op.U_, Op.L]
+    } else if so(3) == green && sg(1) == red { return [Op.L, Op.U_, Op.L_, Op.U_, Op.F, Op.U, Op.F_]
 //
-    } else if so(5) == yellow && sg(7) == red { return ["F", "U'", "F'"]
-    } else if so(5) == green && sg(7) == yellow { return ["U'", "F", "U", "F'"]
-    } else if so(5) == red && sg(7) == green { return ["F", "U", "U", "F'", "L'", "U'", "L"]
-    } else { return ["error_setYGR"]
+    } else if so(5) == yellow && sg(7) == red { return [Op.F, Op.U_, Op.F_]
+    } else if so(5) == green && sg(7) == yellow { return [Op.U_, Op.F, Op.U, Op.F_]
+    } else if so(5) == red && sg(7) == green { return [Op.F, Op.U, Op.U, Op.F_, Op.L_, Op.U_, Op.L]
+    } else { return [Op.U] // error_setYGR
     }
   }
   return setYGR2
 }
 
 
-func setGR(_ tc: String) -> (_ q: Cube) -> [String] {
-  func setGR2(_ q: Cube) -> [String] {
+func setGR(_ tc: Op) -> (_ q: Cube) -> [Op] {
+  func setGR2(_ q: Cube) -> [Op] {
     let sr = q.r.getColor
     let sg = q.g.getColor
     let sw = q.w.getColor
     let sb = q.b.getColor
     let so = q.o.getColor
-    let green = rotc(tc, "G")
-    let red = rotc(tc, "R")
+    let green = rotc(tc, Color.Green)
+    let red = rotc(tc, Color.Red)
 
     if sr(8) == red && sg(4) == green { return []
 //
     } else if sr(8) == green && sg(4) == red {
-        return ["F", "U'", "F'", "U'", "L'", "U", "L", "U'", "F", "U'", "F'", "U'", "L'", "U", "L"]
-    } else if sr(6) == red && sw(2) == green { return ["U'", "L'", "U", "L", "U", "F", "U'", "F'"]
-    } else if sr(6) == green && sw(2) == red { return ["U", "U", "F", "U'", "F'", "U'", "L'", "U", "L"]
+        return [Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L, Op.U_, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
+    } else if sr(6) == red && sw(2) == green { return [Op.U_, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
+    } else if sr(6) == green && sw(2) == red { return [Op.U, Op.U, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
     } else if sr(4) == green && sb(8) == red { 
-        return ["R", "U'", "R'", "U'", "F'", "U", "F", "U", "L'", "U", "L", "U", "F", "U'", "F'"]
+        return [Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.U, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
     } else if sr(4) == red && sb(8) == green {
-        return ["R", "U'", "R'", "U'", "F'", "U", "F", "F", "U'", "F'", "U'", "L'", "U", "L"]
+        return [Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
 //
     } else if sb(4) == green && so(8) == red {
-        return ["Y", "R", "U'", "R'", "U'", "F'", "U", "F", "Y'", "U", "U", "L'", "U", "L", "U", "F", "U'", "F'"]
+        return [Op.Y, Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.Y_, Op.U, Op.U, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
     } else if sb(4) == red && so(8) == green {
-        return ["Y", "R", "U'", "R'", "U'", "F'", "U", "F", "Y'", "U", "F", "U'", "F'", "U'", "L'", "U", "L"]
-    } else if sb(6) == red && sw(4) == green { return ["L'", "U", "L", "U", "F", "U'", "F'"]
-    } else if sb(6) == green && sw(4) == red { return ["U'", "F", "U'", "F'", "U'", "L'", "U", "L"]
+        return [Op.Y, Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.Y_, Op.U, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
+    } else if sb(6) == red && sw(4) == green { return [Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
+    } else if sb(6) == green && sw(4) == red { return [Op.U_, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
 //
-    } else if so(6) == red && sw(6) == green { return ["U", "L'", "U", "L", "U", "F", "U'", "F'"]
-    } else if so(6) == green && sw(6) == red { return ["F", "U'", "F'", "U'", "L'", "U", "L"]
+    } else if so(6) == red && sw(6) == green { return [Op.U, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
+    } else if so(6) == green && sw(6) == red { return [Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
     } else if so(4) == red && sg(8) == green {
-        return ["Y", "Y", "R", "U'", "R'", "U'", "F'", "U", "F", "Y", "Y", "U", "U", "F", "U'", "F'", "U'", "L'", "U", "L"]
+        return [Op.Y, Op.Y, Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.Y, Op.Y, Op.U, Op.U, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
     } else if so(4) == green && sg(8) == red {
-        return ["Y", "Y", "R", "U'", "R'", "U'", "F'", "U", "F", "Y", "Y", "U'", "L'", "U", "L", "U", "F", "U'", "F'"]
+        return [Op.Y, Op.Y, Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.Y, Op.Y, Op.U_, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
 //
-    } else if sg(6) == red && sw(8) == green { return ["U", "U", "L'", "U", "L", "U", "F", "U'", "F'"]
-    } else if sg(6) == green && sw(8) == red { return ["U", "F", "U'", "F'", "U'", "L'", "U", "L"]
-    } else { return ["error_setGR"]
+    } else if sg(6) == red && sw(8) == green { return [Op.U, Op.U, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
+    } else if sg(6) == green && sw(8) == red { return [Op.U, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
+    } else { return [Op.U] // error_setGR
     }
   }
   return setGR2
 }
 
 // PLL1
-func oneToThree(_ q: Cube) -> [String] {
+func oneToThree(_ q: Cube) -> [Op] {
     let swq = q.w.getColor
-    if swq(2) != "W" && swq(4) != "W" &&
-         swq(6) != "W" && swq(8) != "W" { 
-        return ["PLL1p"] + ["F", "R", "U", "R'", "U'", "F'"]
+    if swq(2) != Color.White && swq(4) != Color.White &&
+         swq(6) != Color.White && swq(8) != Color.White { 
+        return [Op.PLL1p] + [Op.F, Op.R, Op.U, Op.R_, Op.U_, Op.F_]
     } else { return []
     }
 }
 
 // PLL2
-func threeToFive(_ q: Cube) -> [String] {
+func threeToFive(_ q: Cube) -> [Op] {
     let sq = q.w.getColor
     let (w2, w4, w6, w8) = (sq(2), sq(4), sq(6), sq(8))
     
-    if w2 == w4 && w2 != w6 && w2 != w8 { return ["PLL21p"] + ["B", "U", "L", "U'", "L'", "B'"]
-    } else if  w4 == w6 && w4 != w8 && w4 != w2 { return ["PLL22p"] + ["U", "B", "U", "L", "U'", "L'", "B'"]
-    } else if  w6 == w8 && w6 != w2 && w6 != w4 { return ["PLL23p"] + ["U", "U", "B", "U", "L", "U'", "L'", "B'"]
-    } else if  w8 == w2 && w8 != w4 && w8 != w6 { return ["PLL24p"] + ["U'", "B", "U", "L", "U'", "L'", "B'"]
-    } else if  w4 == w8 && w4 != w2 && w4 != w6 { return ["PLL25p"] + ["F", "R", "U", "R'", "U'", "F'"]
-    } else if  w2 == w6 && w2 != w4 && w2 != w8 { return ["PLL26p"] + ["U", "F", "R", "U", "R'", "U'", "F'"]
+    if w2 == w4 && w2 != w6 && w2 != w8 { return [Op.PLL21p] + [Op.B, Op.U, Op.L, Op.U_, Op.L_, Op.B_]
+    } else if  w4 == w6 && w4 != w8 && w4 != w2 { return [Op.PLL22p] + [Op.U, Op.B, Op.U, Op.L, Op.U_, Op.L_, Op.B_]
+    } else if  w6 == w8 && w6 != w2 && w6 != w4 { return [Op.PLL23p] + [Op.U, Op.U, Op.B, Op.U, Op.L, Op.U_, Op.L_, Op.B_]
+    } else if  w8 == w2 && w8 != w4 && w8 != w6 { return [Op.PLL24p] + [Op.U_, Op.B, Op.U, Op.L, Op.U_, Op.L_, Op.B_]
+    } else if  w4 == w8 && w4 != w2 && w4 != w6 { return [Op.PLL25p] + [Op.F, Op.R, Op.U, Op.R_, Op.U_, Op.F_]
+    } else if  w2 == w6 && w2 != w4 && w2 != w8 { return [Op.PLL26p] + [Op.U, Op.F, Op.R, Op.U, Op.R_, Op.U_, Op.F_]
     } else { return []
     }
 }
 
 // PLL3
-func fiveToNine(_ q: Cube) -> [String] {
+func fiveToNine(_ q: Cube) -> [Op] {
     let (r5, r7) = (q.r.getColor(5), q.r.getColor(7))
     let (o5, o7) = (q.o.getColor(5), q.o.getColor(7))
     let (g5, g7) = (q.g.getColor(5), q.g.getColor(7))
@@ -594,124 +648,125 @@ func fiveToNine(_ q: Cube) -> [String] {
     let (w1, w3, w5, w7) = (wq(1), wq(3), wq(5), wq(7))
 
     if r5 == o7 && o7 == g5 && g5 == g7 {
-        return ["R", "U", "U", "R'", "R'", "U'", "R", "R", "U'", "R'", "R'", "U", "U", "R"]
+        return [Op.R, Op.U, Op.U, Op.R_, Op.R_, Op.U_, Op.R, Op.R, Op.U_, Op.R_, Op.R_, Op.U, Op.U, Op.R]
     } else if  w1 == w3 && w3 == o5 && o5 == o7 {
-        return ["R", "R", "D'", "R", "U", "U", "R'", "D", "R", "U", "U", "R"]
-    } else if  r5 == b5 && b5 == o5 && o5 == w1 { return ["R", "U", "R'", "U", "R", "U'", "U'", "R'"]
-    } else if  r7 == b7 && b7 == g7 && g7 == w5 { return ["R", "U'", "U'", "R'", "U'", "R", "U'", "R'"]
+        return [Op.R, Op.R, Op.D_, Op.R, Op.U, Op.U, Op.R_, Op.D, Op.R, Op.U, Op.U, Op.R]
+    } else if  r5 == b5 && b5 == o5 && o5 == w1 { return [Op.R, Op.U, Op.R_, Op.U, Op.R, Op.U_, Op.U_, Op.R_]
+    } else if  r7 == b7 && b7 == g7 && g7 == w5 { return [Op.R, Op.U_, Op.U_, Op.R_, Op.U_, Op.R, Op.U_, Op.R_]
     } else if  r7 == r5 && r5 == o7 && o7 == o5 {
-        return ["R", "U'", "U'", "R'", "U'", "R", "U", "R'", "U'", "R", "U'", "R'"]
+        return [Op.R, Op.U_, Op.U_, Op.R_, Op.U_, Op.R, Op.U, Op.R_, Op.U_, Op.R, Op.U_, Op.R_]
     } else if  r7 == b5 && b5 == w3 && w3 == w7 {
-        return ["L", "F'", "F'", "R'", "R'", "D", "R", "D'", "R", "F'", "F'", "L'"]
-    } else if  r7 == w3 && w3 == w5 && w5 == o5 { return ["L", "F", "R'", "F'", "L'", "F", "R", "F'"]
+        return [Op.L, Op.F_, Op.F_, Op.R_, Op.R_, Op.D, Op.R, Op.D_, Op.R, Op.F_, Op.F_, Op.L_]
+    } else if  r7 == w3 && w3 == w5 && w5 == o5 { return [Op.L, Op.F, Op.R_, Op.F_, Op.L_, Op.F, Op.R, Op.F_]
     } else { return []
     }
 }
 
 
 // OLL
-func nineToFinish(_ q: Cube) -> [String] {
+func nineToFinish(_ q: Cube) -> [Op] {
     let (r5, r6, r7) = (q.r.getColor(5), q.r.getColor(6), q.r.getColor(7))
     let (g5, g6, g7) = (q.g.getColor(5), q.g.getColor(6), q.g.getColor(7))
     let (o5, o6, o7) = (q.o.getColor(5), q.o.getColor(6), q.o.getColor(7))
     let (b5, b6, b7) = (q.b.getColor(5), q.b.getColor(6), q.b.getColor(7))
 
     if g6 == g7 && o5 == o6 && b5 == b7 && b7 == r6 { // A1
-        return ["A1p"] + ["R", "R", "F", "F", "R'", "B'", "R", "F", "F", "R'", "B", "R'"]
+        return [Op.A1p] + [Op.R, Op.R, Op.F, Op.F, Op.R_, Op.B_, Op.R, Op.F, Op.F, Op.R_, Op.B, Op.R_]
     } else if  g6 == g7 && o5 == o6 && r5 == r7 && r7 == b6 { // A2
-        return ["A2p"] + ["R", "B'", "R", "F", "F", "R'", "B", "R", "F", "F", "R'", "R'"]
+        return [Op.A2p] + [Op.R, Op.B_, Op.R, Op.F, Op.F, Op.R_, Op.B, Op.R, Op.F, Op.F, Op.R_, Op.R_]
     } else if  r6 == r7 && g5 == g7 && g5 != g6 && o5 == o6 { // T
-        return ["Tp"] + ["R", "U", "R'", "U'", "R'", "F", "R", "R", "U'", "R'", "U'", "R", "U", "R'", "F'"]
+        return [Op.Tp] + [Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F, Op.R, Op.R, Op.U_, Op.R_, Op.U_, Op.R, Op.U, Op.R_, Op.F_]
     } else if  o5 == o6 && o5 == o7 && r5 != r6 && r5 == r7 { 
         if r5 == b6 {
-            return ["U1p"] + ["R", "R", "U", "R", "U", "R'", "U'", "R'", "U'", "R'", "U", "R'"] // U1
+            return [Op.U1p] + [Op.R, Op.R, Op.U, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.U_, Op.R_, Op.U, Op.R_] // U1
         } else {
-            return ["U2p"] + ["R", "U'", "R", "U", "R", "U", "R", "U'", "R'", "U'", "R'", "R'"] // U2
+            return [Op.U2p] + [Op.R, Op.U_, Op.R, Op.U, Op.R, Op.U, Op.R, Op.U_, Op.R_, Op.U_, Op.R_, Op.R_] // U2
         }
     } else if  r6 == r7 && b5 == b6 && r7 == o5 && b6 != b7 { // Y
-        return ["Yp"] + ["F", "R", "U'", "R'", "U'", "R", "U", "R'", "F'", "R", "U", "R'", "U'", "R'", "F", "R", "F'"]
+        return [Op.Yp] + [Op.F, Op.R, Op.U_, Op.R_, Op.U_, Op.R, Op.U, Op.R_, Op.F_, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F, Op.R, Op.F_]
     } else if  r5 == r7 && r5 == b6 && r6 == b7 && g5 == g6 { // R2
-        return ["R2p"] + ["R'", "U'", "U'", "R", "U'", "U'", "R'", "F", "R", "U", "R'", "U'", "R'", "F'", "R", "R", "U'"]
+        return [Op.R2p] + [Op.R_, Op.U_, Op.U_, Op.R, Op.U_, Op.U_, Op.R_, Op.F, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F_, Op.R, Op.R, Op.U_]
     } else if  r5 == r7 && r5 == b6 && r6 == b7 && b5 == b7 { // Z
-        return ["Zp"] + ["R'", "L", "F'", "R", "R", "L'", "L'", "B'", "R", "R", "L'", "L'", "F'", "R'", "L", "D", "D", "R", "R", "L'", "L'", "U"]
+        return [Op.Zp] + [Op.R_, Op.L, Op.F_, Op.R, Op.R, Op.L_, Op.L_, Op.B_, Op.R, Op.R, Op.L_, Op.L_, Op.F_, Op.R_, Op.L, Op.D, Op.D, Op.R, Op.R, Op.L_, Op.L_, Op.U]
     } else if  r5 == r7 && r5 == g6 && r6 == g5 && g7 != g5 { // R1
-        return ["R1p"] + ["L", "U", "U", "L'", "U", "U", "L", "F'", "L'", "U'", "L", "U", "L", "F", "L'", "L'", "U"]
+        return [Op.R1p] + [Op.L, Op.U, Op.U, Op.L_, Op.U, Op.U, Op.L, Op.F_, Op.L_, Op.U_, Op.L, Op.U, Op.L, Op.F, Op.L_, Op.L_, Op.U]
     } else if  r5 == r7 && b5 == b7 && r5 == o6 && b5 == g6 { // H
-        return ["Hp"] + ["M", "M", "U'", "M", "M", "U'", "U'", "M", "M", "U'", "M", "M"]
+        return [Op.Hp] + [Op.M, Op.M, Op.U_, Op.M, Op.M, Op.U_, Op.U_, Op.M, Op.M, Op.U_, Op.M, Op.M]
     } else if  r5 == r6 && g5 == g7 && g7 == b6 && b7 == g6 { // G1
-        return ["G1p"] + ["R", "R", "D", "Y", "R'", "U", "R'", "U'", "R", "D'", "Y'", "R'", "R'", "F'", "U", "F"]
+        return [Op.G1p] + [Op.R, Op.R, Op.D, Op.Y, Op.R_, Op.U, Op.R_, Op.U_, Op.R, Op.D_, Op.Y_, Op.R_, Op.R_, Op.F_, Op.U, Op.F]
     } else if  r5 == r6 && r6 == o7 && g5 == g6 && g6 == g7 { // J2
-        return ["J2p"] + ["R", "U", "R'", "F'", "R", "U", "R'", "U'", "R'", "F", "R", "R", "U'", "R'", "U'"]
+        return [Op.J2p] + [Op.R, Op.U, Op.R_, Op.F_, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F, Op.R, Op.R, Op.U_, Op.R_, Op.U_]
     } else if  r7 == r6 && r6 == o5 && b5 == b7 && b7 == g6 { // G3
-        return ["G3p"] + ["L'", "L'", "D'", "Y'", "L", "U'", "L", "U", "L'", "D", "Y", "L", "L", "F", "U'", "F'"]
+        return [Op.G3p] + [Op.L_, Op.L_, Op.D_, Op.Y_, Op.L, Op.U_, Op.L, Op.U, Op.L_, Op.D, Op.Y, Op.L, Op.L, Op.F, Op.U_, Op.F_]
     } else if  r7 == r6 && r6 == o5 && b5 == b6 && b6 == b7 { // J1
-        return ["J1p"] + ["L'", "U'", "L", "F", "L'", "U'", "L", "U", "L", "F'", "L'", "L'", "U", "L", "U"]
+        return [Op.J1p] + [Op.L_, Op.U_, Op.L, Op.F, Op.L_, Op.U_, Op.L, Op.U, Op.L, Op.F_, Op.L_, Op.L_, Op.U, Op.L, Op.U]
     } else if  r5 == r6 && o5 == o7 && o7 == b6 && r7 != r6 { // G2
-        return ["G2p"] + ["F'", "U'", "F", "R", "R", "D", "Y", "R'", "U", "R", "U'", "R", "D'", "Y'", "R", "R"]
+        return [Op.G2p] + [Op.F_, Op.U_, Op.F, Op.R, Op.R, Op.D, Op.Y, Op.R_, Op.U, Op.R, Op.U_, Op.R, Op.D_, Op.Y_, Op.R, Op.R]
     } else if  r7 == r6 && o5 == o7 && o5 == g6 && r5 == b6 { // G4
-        return ["G4p"] + ["F", "U", "F'", "L'", "L'", "D'", "Y'", "L", "U'", "L'", "U", "L'", "D", "Y", "L'", "L'"]
+        return [Op.G4p] + [Op.F, Op.U, Op.F_, Op.L_, Op.L_, Op.D_, Op.Y_, Op.L, Op.U_, Op.L_, Op.U, Op.L_, Op.D, Op.Y, Op.L_, Op.L_]
     } else if  r7 == b5 && r5 == b6 && r6 == b7 && g6 == g5 { // F
-        return ["Fp"] + ["R'", "U'", "F'", "R", "U", "R'", "U'", "R'", "F", "R", "R", "U'", "R'", "U'", "R", "U", "R'", "U", "R"]
+        return [Op.Fp] + [Op.R_, Op.U_, Op.F_, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F, Op.R, Op.R, Op.U_, Op.R_, Op.U_, Op.R, Op.U, Op.R_, Op.U, Op.R]
     } else if  r6 == r7 && g5 == g6 && g5 == b7 && r7 == o5 { // V
-        return ["Vp"] + ["R'", "U", "R'", "U'", "Y", "R'", "F'", "R", "R", "U'", "R'", "U", "R'", "F", "R", "F", "Y'"]
+        return [Op.Vp] + [Op.R_, Op.U, Op.R_, Op.U_, Op.Y, Op.R_, Op.F_, Op.R, Op.R, Op.U_, Op.R_, Op.U, Op.R_, Op.F, Op.R, Op.F, Op.Y_]
     } else if  r7 == r6 && b7 == b6 && o7 == o6 && o6 == r5 && b6 != b5 && g5 != g6 { // N2
-        return ["N2p"] + ["R'", "U", "R", "U'", "R'", "F'", "U'", "F", "R", "U", "R'", "F", "R'", "F'", "R", "U'", "R"]
+        return [Op.N2p] + [Op.R_, Op.U, Op.R, Op.U_, Op.R_, Op.F_, Op.U_, Op.F, Op.R, Op.U, Op.R_, Op.F, Op.R_, Op.F_, Op.R, Op.U_, Op.R]
     } else if  r5 == r6 && b5 == b6 && o5 == o6 && o6 == r7 && b6 != b7 { // N1
-        return ["N1p"] + ["L", "U'", "L'", "U", "L", "F", "U", "F'", "L'", "U'", "L", "F'", "L", "F", "L'", "U", "L'"]
+        return [Op.N1p] + [Op.L, Op.U_, Op.L_, Op.U, Op.L, Op.F, Op.U, Op.F_, Op.L_, Op.U_, Op.L, Op.F_, Op.L, Op.F, Op.L_, Op.U, Op.L_]
     } else if  r5 == b6 && b6 == o7 && r7 == g6 && g6 == o5 { // E
-        return ["Ep"] + ["R", "B'", "R'", "F", "R", "B", "R'", "F'", "R", "B", "R'", "F", "R", "B'", "R'", "F'"]
+        return [Op.Ep] + [Op.R, Op.B_, Op.R_, Op.F, Op.R, Op.B, Op.R_, Op.F_, Op.R, Op.B, Op.R_, Op.F, Op.R, Op.B_, Op.R_, Op.F_]
     } else { return []
     }
 }
 
 
-func prSeq(_ ops_arg: [String]) -> String {
+func prSeq(_ ops_arg: [Op]) -> String {
     if ops_arg.count == 0 { return "" }
 
     var xs = ops_arg
     let x = xs.remove(at: 0)
 
-    if x == "FstLayer" { return "First Layer -----\n " + prSeq(xs)
-    } else if x == "SndLayer" { return "\nSecond Layer -----\n " + prSeq(xs)
-    } else if x == "PLL1p"
-                || x == "PLL21p"
-                || x == "PLL22p"
-                || x == "PLL23p" 
-                || x == "PLL24p"
-                || x == "PLL25p" 
-                || x == "PLL26p" { return "\nPLL -----\n " + prSeq(xs)
-    } else if x == "A2p" 
-                || x == "A1p" 
-                || x == "Tp" 
-                || x == "U1p" 
-                || x == "U2p"
-                || x == "Yp"
-                || x == "R2p"
-                || x == "Zp" 
-                || x == "R1p"
-                || x == "Hp" 
-                || x == "G2p"
-                || x == "J2p"
-                || x == "G4p"
-                || x == "J1p"
-                || x == "G1p"
-                || x == "G3p"
-                || x == "Fp"
-                || x == "Vp" 
-                || x == "N2p"
-                || x == "N1p"
-                || x == "Ep" { return "\nOLL -----\n " + prSeq(xs)
-    } else { return x + " " + prSeq(xs)
+    if x == Op.FstLayer { return "First Layer -----\n " + prSeq(xs)
+    } else if x == Op.SndLayer { return "\nSecond Layer -----\n " + prSeq(xs)
+    } else if x == Op.PLL1p
+                || x == Op.PLL21p
+                || x == Op.PLL22p
+                || x == Op.PLL23p 
+                || x == Op.PLL24p
+                || x == Op.PLL25p 
+                || x == Op.PLL26p { return "\nPLL -----\n " + prSeq(xs)
+    } else if x == Op.A2p 
+                || x == Op.A1p 
+                || x == Op.Tp 
+                || x == Op.U1p 
+                || x == Op.U2p
+                || x == Op.Yp
+                || x == Op.R2p
+                || x == Op.Zp 
+                || x == Op.R1p
+                || x == Op.Hp 
+                || x == Op.G2p
+                || x == Op.J2p
+                || x == Op.G4p
+                || x == Op.J1p
+                || x == Op.G1p
+                || x == Op.G3p
+                || x == Op.Fp
+                || x == Op.Vp 
+                || x == Op.N2p
+                || x == Op.N1p
+                || x == Op.Ep { return "\nOLL -----\n " + prSeq(xs)
+//    } else { return op2s(x) + " " + prSeq(xs)
+    } else { return x.rawValue + " " + prSeq(xs)
     }
 }
 
 
 
 class Surface {
-    var c1, c2, c3, c4, c5, c6, c7, c8: Int
+    var c1, c2, c3, c4, c5, c6, c7, c8: Color
     
-    init(_ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int,
-         _ c5: Int, _ c6: Int, _ c7: Int, _ c8: Int) {
+    init(_ c1: Color, _ c2: Color, _ c3: Color, _ c4: Color,
+         _ c5: Color, _ c6: Color, _ c7: Color, _ c8: Color) {
         self.c1 = c1
         self.c2 = c2
         self.c3 = c3
@@ -721,26 +776,24 @@ class Surface {
         self.c7 = c7
         self.c8 = c8
     }
-    
-    func getColor(_ num: Int) -> String {
-        var i: Int
+
+    func getColor(_ num: Int) -> Color {
         switch num {
-        case 1: i = c1
-        case 2: i = c2
-        case 3: i = c3
-        case 4: i = c4
-        case 5: i = c5
-        case 6: i = c6
-        case 7: i = c7
-        case 8: i = c8
-        default : i = -1
+        case 1: return c1
+        case 2: return c2
+        case 3: return c3
+        case 4: return c4
+        case 5: return c5
+        case 6: return c6
+        case 7: return c7
+        case 8: return c8
+        default : return c1 // error
         }
-        return i2c(i)
     }
-    
-    func check(_ c: String) -> Bool {
-        return getColor(1) == c && getColor(2) == c && getColor(3) == c &&
-          getColor(4) == c && getColor(5) == c && getColor(6) == c
+
+    func check(_ c: Color) -> Bool {
+        return c1 == c && c2 == c && c3 == c &&
+          c4 == c && c5 == c && c6 == c
     }
 
     func dupSurface() -> Surface {
@@ -749,12 +802,7 @@ class Surface {
 }
 
 class Cube {
-    var w: Surface
-    var r: Surface
-    var b: Surface
-    var o: Surface
-    var g: Surface
-    var y: Surface
+    var w, r, b, o, g, y: Surface
     
     init(w: Surface, r: Surface, b: Surface, o: Surface, g: Surface, y: Surface) {
         self.w = w
@@ -766,12 +814,12 @@ class Cube {
     }
     
     func pr() -> String {
-        let fw = self.w.getColor
-        let fr = self.r.getColor
-        let fb = self.b.getColor
-        let fo = self.o.getColor
-        let fg = self.g.getColor
-        let fy = self.y.getColor
+        let fw = {self.w.getColor($0).rawValue}
+        let fr = {self.r.getColor($0).rawValue}
+        let fb = {self.b.getColor($0).rawValue}
+        let fo = {self.o.getColor($0).rawValue}
+        let fg = {self.g.getColor($0).rawValue}
+        let fy = {self.y.getColor($0).rawValue}
         let w765 = "\(fw(7))\(fw(6))\(fw(5))"
         let w8_4 = "\(fw(8))W\(fw(4))"
         let w123 = "\(fw(1))\(fw(2))\(fw(3))"
@@ -807,18 +855,17 @@ class Cube {
                     o: o.dupSurface(), g: g.dupSurface(), y: y.dupSurface())
     }
     
-    
     func check() -> Bool {
-        return w.check("W") && r.check("R") && b.check("B") &&
-          o.check("O") && g.check("G") && y.check("Y")
+        return w.check(Color.White) && r.check(Color.Red) && b.check(Color.Blue) &&
+          o.check(Color.Orange) && g.check(Color.Green) && y.check(Color.Yellow)
     }
 
-    func turn(_ op:String) -> Cube {
+    func turn(_ op:Op) -> Cube {
         let oldCube = dupCube()
         let (or, oy, oo, ow, ob, og) =
           (oldCube.r, oldCube.y, oldCube.o, oldCube.w, oldCube.b, oldCube.g)
         switch op {
-        case "R":
+        case Op.R:
             (w.c3, w.c4, w.c5) = (or.c3, or.c4, or.c5)
             (r.c3, r.c4, r.c5) = (oy.c3, oy.c4, oy.c5)
             (y.c3, y.c4, y.c5) = (oo.c7, oo.c8, oo.c1)
@@ -826,7 +873,7 @@ class Cube {
             (b.c1, b.c2, b.c3, b.c4) = (ob.c3, ob.c4, ob.c5, ob.c6)
             (b.c5, b.c6, b.c7, b.c8) = (ob.c7, ob.c8, ob.c1, ob.c2)
             return self
-        case "Y":
+        case Op.Y:
             (w.c1, w.c2, w.c3, w.c4) = (ow.c3, ow.c4, ow.c5, ow.c6)
             (w.c5, w.c6, w.c7, w.c8) = (ow.c7, ow.c8, ow.c1, ow.c2)
             (r.c1, r.c2, r.c3, r.c4) = (ob.c1, ob.c2, ob.c3, ob.c4)
@@ -840,7 +887,7 @@ class Cube {
             (y.c1, y.c2, y.c3, y.c4) = (oy.c7, oy.c8, oy.c1, oy.c2)
             (y.c5, y.c6, y.c7, y.c8) = (oy.c3, oy.c4, oy.c5, oy.c6)
             return self
-        case "Z":
+        case Op.Z:
             (w.c1, w.c2, w.c3, w.c4) = (og.c3, og.c4, og.c5, og.c6)
             (w.c5, w.c6, w.c7, w.c8) = (og.c7, og.c8, og.c1, og.c2)
             (r.c1, r.c2, r.c3, r.c4) = (or.c3, or.c4, or.c5, or.c6)
@@ -854,97 +901,66 @@ class Cube {
             (y.c1, y.c2, y.c3, y.c4) = (ob.c3, ob.c4, ob.c5, ob.c6)
             (y.c5, y.c6, y.c7, y.c8) = (ob.c7, ob.c8, ob.c1, ob.c2)
             return self
-        case "R'":
-            return self.turn("R").turn("R").turn("R")
-        case "R2":
-            return self.turn("R").turn("R")
-        case "Y'":
-            return self.turn("Y").turn("Y").turn("Y")
-        case "Z2":
-            return self.turn("Z").turn("Z")
-        case "Z'":
-            return self.turn("Z").turn("Z").turn("Z")
-        case "L":
-            return self.applySeq(["Y", "Y", "R", "Y", "Y"])
-        case "L2":
-            return self.turn("L").turn("L")
-        case "L'":
-            return self.applySeq(["Y", "Y", "R'", "Y", "Y"])
-        case "U":
-            return self.turn("Z").turn("R").turn("Z'")
-        case "U2":
-            return self.turn("U").turn("U")
-        case "U'":
-            return self.turn("Z").turn("R'").turn("Z'")
-        case "D":
-            return self.turn("Z'").turn("R").turn("Z")
-        case "D2":
-            return self.turn("D").turn("D")
-        case "D'":
-            return self.turn("Z'").turn("R'").turn("Z")
-        case "F":
-            return self.turn("Y'").turn("R").turn("Y")
-        case "F2":
-            return self.turn("F").turn("F")
-        case "F'":
-            return self.turn("Y'").turn("R'").turn("Y")
-        case "B":
-            return self.turn("Y").turn("R").turn("Y'")
-        case "B2":
-            return self.turn("B").turn("B")
-        case "B'":
-            return self.turn("Y").turn("R'").turn("Y'")
-        case "Y2":
-            return self.turn("Y").turn("Y")
-        case "Y'2":
-            return self.turn("Y'").turn("Y'")
-        case "Z'2":
-            return self.turn("Z'").turn("Z'")
-        case "U'2":
-            return self.turn("U'").turn("U'")
-        case "B'2":
-            return self.turn("B'").turn("B'")
-        case "D'2":
-            return self.turn("D'").turn("D'")
-        case "L'2":
-            return self.turn("L'").turn("L'")
-        case "R'2":
-            return self.turn("R'").turn("R'")
-        case "F'2":
-            return self.turn("F'").turn("F'")
-        case "M":
-            return self.applySeq(["Z", "D'", "U", "Y'", "Z'"])
+        case Op.R_: return self.turn(Op.R).turn(Op.R).turn(Op.R)
+        case Op.R2: return self.turn(Op.R).turn(Op.R)
+        case Op.Y_: return self.turn(Op.Y).turn(Op.Y).turn(Op.Y)
+        case Op.Z2: return self.turn(Op.Z).turn(Op.Z)
+        case Op.Z_: return self.turn(Op.Z).turn(Op.Z).turn(Op.Z)
+        case Op.L: return self.applySeq([Op.Y, Op.Y, Op.R, Op.Y, Op.Y])
+        case Op.L2: return self.turn(Op.L).turn(Op.L)
+        case Op.L_: return self.applySeq([Op.Y, Op.Y, Op.R_, Op.Y, Op.Y])
+        case Op.U: return self.turn(Op.Z).turn(Op.R).turn(Op.Z_)
+        case Op.U2: return self.turn(Op.U).turn(Op.U)
+        case Op.U_: return self.turn(Op.Z).turn(Op.R_).turn(Op.Z_)
+        case Op.D: return self.turn(Op.Z_).turn(Op.R).turn(Op.Z)
+        case Op.D2: return self.turn(Op.D).turn(Op.D)
+        case Op.D_: return self.turn(Op.Z_).turn(Op.R_).turn(Op.Z)
+        case Op.F: return self.turn(Op.Y_).turn(Op.R).turn(Op.Y)
+        case Op.F2: return self.turn(Op.F).turn(Op.F)
+        case Op.F_: return self.turn(Op.Y_).turn(Op.R_).turn(Op.Y)
+        case Op.B: return self.turn(Op.Y).turn(Op.R).turn(Op.Y_)
+        case Op.B2: return self.turn(Op.B).turn(Op.B)
+        case Op.B_: return self.turn(Op.Y).turn(Op.R_).turn(Op.Y_)
+        case Op.Y2: return self.turn(Op.Y).turn(Op.Y)
+        case Op.Y_2: return self.turn(Op.Y_).turn(Op.Y_)
+        case Op.Z_2: return self.turn(Op.Z_).turn(Op.Z_)
+        case Op.U_2: return self.turn(Op.U_).turn(Op.U_)
+        case Op.B_2: return self.turn(Op.B_).turn(Op.B_)
+        case Op.D_2: return self.turn(Op.D_).turn(Op.D_)
+        case Op.L_2: return self.turn(Op.L_).turn(Op.L_)
+        case Op.R_2: return self.turn(Op.R_).turn(Op.R_)
+        case Op.F_2: return self.turn(Op.F_).turn(Op.F_)
+        case Op.M: return self.applySeq([Op.Z, Op.D_, Op.U, Op.Y_, Op.Z_])
         default: break
-//            return self.turn("R").turn("R'")
         }
         return self
     }
 
-    func turn2(_ q:Cube, _ op:String) -> Cube {
+    func turn2(_ q:Cube, _ op:Op) -> Cube {
         return q.turn(op)
     }
 
-    func applySeq(_ l:[String]) -> Cube {
+    func applySeq(_ l:[Op]) -> Cube {
         return l.reduce(self, turn2)
     }
 }
 
 
-let goal = Cube(w: Surface(c2i("W"),c2i("W"),c2i("W"),c2i("W"),
-                           c2i("W"),c2i("W"),c2i("W"),c2i("W")),
-                r: Surface(c2i("R"),c2i("R"),c2i("R"),c2i("R"),
-                           c2i("R"),c2i("R"),c2i("R"),c2i("R")),
-                b: Surface(c2i("B"),c2i("B"),c2i("B"),c2i("B"),
-                           c2i("B"),c2i("B"),c2i("B"),c2i("B")),
-                o: Surface(c2i("O"),c2i("O"),c2i("O"),c2i("O"),
-                           c2i("O"),c2i("O"),c2i("O"),c2i("O")),
-                g: Surface(c2i("G"),c2i("G"),c2i("G"),c2i("G"),
-                           c2i("G"),c2i("G"),c2i("G"),c2i("G")),
-                y: Surface(c2i("Y"),c2i("Y"),c2i("Y"),c2i("Y"),
-                           c2i("Y"),c2i("Y"),c2i("Y"),c2i("Y")))
+let goal = Cube(w: Surface(s2c("W"),s2c("W"),s2c("W"),s2c("W"),
+                           s2c("W"),s2c("W"),s2c("W"),s2c("W")),
+                r: Surface(s2c("R"),s2c("R"),s2c("R"),s2c("R"),
+                           s2c("R"),s2c("R"),s2c("R"),s2c("R")),
+                b: Surface(s2c("B"),s2c("B"),s2c("B"),s2c("B"),
+                           s2c("B"),s2c("B"),s2c("B"),s2c("B")),
+                o: Surface(s2c("O"),s2c("O"),s2c("O"),s2c("O"),
+                           s2c("O"),s2c("O"),s2c("O"),s2c("O")),
+                g: Surface(s2c("G"),s2c("G"),s2c("G"),s2c("G"),
+                           s2c("G"),s2c("G"),s2c("G"),s2c("G")),
+                y: Surface(s2c("Y"),s2c("Y"),s2c("Y"),s2c("Y"),
+                           s2c("Y"),s2c("Y"),s2c("Y"),s2c("Y")))
 
 
-func solve(_ str: String) -> [String] {
+func solve(_ str: String) -> [Op] {
     return solveQ(goal.dupCube().applySeq(fromString(str)))
 }
 
@@ -953,11 +969,12 @@ func solve_check(_ str: String) {
     let outs = solve(str)
     let q_start = goal.dupCube().applySeq(ins)
     print("Scramble:")
-    print(ins)
+    print(str)
+//    print(ins)
     print("Scrambled:")
     print(q_start.pr())
     print("Solution:")
-    print(outs)
+//    print(outs)
     print(prSeq(outs))
     print("Solved:")
     print(q_start.dupCube().applySeq(outs).pr())
@@ -969,7 +986,7 @@ func solve_check_pat(_ str: String) {
     print("Scrambled:")
     print(q_start.pr())
     print("Solution:")
-    print(outs)
+//    print(outs)
     print(prSeq(outs))
     print("Solved:")
     print(q_start.dupCube().applySeq(outs).pr())
