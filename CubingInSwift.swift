@@ -53,91 +53,93 @@ enum Op : String {
     case G1p; case G3p; case Fp; case Vp; case N2p; case N1p; case Ep
 }
 
+enum CubingError : Error {
+    case ParseError
+}
 
 // helper functions
 func s2c(_ c: String) -> Color {
     switch c {
-    case "W": return Color.White
-    case "R": return Color.Red
-    case "B": return Color.Blue
-    case "O": return Color.Orange
-    case "G": return Color.Green
-    case "Y": return Color.Yellow
-    default: return Color.White // error s2c
+    case "W": return .White
+    case "R": return .Red
+    case "B": return .Blue
+    case "O": return .Orange
+    case "G": return .Green
+    case "Y": return .Yellow
+    default: return .White // error s2c
     }
 }
 
 
 func s2op(_ s: String) -> Op {
     switch s {
-    case "R": return Op.R
-    case "R'": return Op.R_
-    case "U": return Op.U
-    case "U'": return Op.U_
-    case "B": return Op.B
-    case "B'": return Op.B_
-    case "L": return Op.L
-    case "L'": return Op.L_
-    case "F": return Op.F
-    case "F'": return Op.F_
-    case "D": return Op.D
-    case "D'": return Op.D_
-    case "Y": return Op.Y
-    case "Y'": return Op.Y_
-    case "Z": return Op.Z
-    case "Z'": return Op.Z_
-    case "N": return Op.N
-    case "M": return Op.M
-    case "M'": return Op.M_
-    case "Y2": return Op.Y2
-    case "Y'2": return Op.Y_2
-    case "Z2": return Op.Z2
-    case "Z'2": return Op.Z_2
-    case "R2": return Op.R2
-    case "R'2": return Op.R_2
-    case "U2": return Op.U2
-    case "U'2": return Op.U_2
-    case "B2": return Op.B2
-    case "B'2": return Op.B_2
-    case "L2": return Op.L2
-    case "L'2": return Op.L_2
-    case "F2": return Op.F2
-    case "F'2": return Op.F_2
-    case "D2": return Op.D2
-    case "D'2": return Op.D_2
-           
+    case "R": return .R
+    case "R'": return .R_
+    case "U": return .U
+    case "U'": return .U_
+    case "B": return .B
+    case "B'": return .B_
+    case "L": return .L
+    case "L'": return .L_
+    case "F": return .F
+    case "F'": return .F_
+    case "D": return .D
+    case "D'": return .D_
+    case "Y": return .Y
+    case "Y'": return .Y_
+    case "Z": return .Z
+    case "Z'": return .Z_
+    case "N": return .N
+    case "M": return .M
+    case "M'": return .M_
+    case "Y2": return .Y2
+    case "Y'2": return .Y_2
+    case "Z2": return .Z2
+    case "Z'2": return .Z_2
+    case "R2": return .R2
+    case "R'2": return .R_2
+    case "U2": return .U2
+    case "U'2": return .U_2
+    case "B2": return .B2
+    case "B'2": return .B_2
+    case "L2": return .L2
+    case "L'2": return .L_2
+    case "F2": return .F2
+    case "F'2": return .F_2
+    case "D2": return .D2
+    case "D'2": return .D_2
 //
-    case "FstLayer": return Op.FstLayer
-    case "SndLayer": return Op.SndLayer
-    case "PLL1p": return Op.PLL1p
-    case "PLL21p": return Op.PLL21p
-    case "PLL22p": return Op.PLL22p
-    case "PLL23p": return Op.PLL23p
-    case "PLL24p": return Op.PLL24p
-    case "PLL25p": return Op.PLL25p
-    case "PLL26p": return Op.PLL26p
-    case "A2p": return Op.A2p
-    case "A1p": return Op.A1p
-    case "Tp": return Op.Tp
-    case "U1p": return Op.U1p
-    case "U2p": return Op.U2p
-    case "Yp": return Op.Yp
-    case "R2p": return Op.R2p
-    case "Zp": return Op.Zp
-    case "R1p": return Op.R1p
-    case "Hp": return Op.Hp
-    case "G2p": return Op.G2p
-    case "J2p": return Op.J2p
-    case "G4p": return Op.G4p
-    case "J1p": return Op.J1p
-    case "G1p": return Op.G1p
-    case "G3p": return Op.G3p
-    case "Fp": return Op.Fp
-    case "Vp": return Op.Vp
-    case "N2p": return Op.N2p
-    case "N1p": return Op.N1p
-    case "Ep": return Op.Ep
-    default: return Op.N // error s2op
+    case "FstLayer": return .FstLayer
+    case "SndLayer": return .SndLayer
+    case "PLL1p": return .PLL1p
+    case "PLL21p": return .PLL21p
+    case "PLL22p": return .PLL22p
+    case "PLL23p": return .PLL23p
+    case "PLL24p": return .PLL24p
+    case "PLL25p": return .PLL25p
+    case "PLL26p": return .PLL26p
+    case "A2p": return .A2p
+    case "A1p": return .A1p
+    case "Tp": return .Tp
+    case "U1p": return .U1p
+    case "U2p": return .U2p
+    case "Yp": return .Yp
+    case "R2p": return .R2p
+    case "Zp": return .Zp
+    case "R1p": return .R1p
+    case "Hp": return .Hp
+    case "G2p": return .G2p
+    case "J2p": return .J2p
+    case "G4p": return .G4p
+    case "J1p": return .J1p
+    case "G1p": return .G1p
+    case "G3p": return .G3p
+    case "Fp": return .Fp
+    case "Vp": return .Vp
+    case "N2p": return .N2p
+    case "N1p": return .N1p
+    case "Ep": return .Ep
+    default: return .N // error s2op
     }
 }
 
@@ -200,45 +202,35 @@ func fromString(_ str: String) -> [Op] {
 func fromStringPos(_ str: String) -> Cube {
     let segs = str.characters.split(separator: ",")
     let collist = segs.map({$0.filter({$0 != " "}).map({"\($0)"})})
-    let sw = collist[0]
-    let sr = collist[1]
-    let sb = collist[2]
-    let so = collist[3]
-    let sg = collist[4]
-    let sy = collist[5]
-    return Cube(w: Surface(s2c(sw[0]), s2c(sw[1]), s2c(sw[2]), s2c(sw[3]),
-                           s2c(sw[4]), s2c(sw[5]), s2c(sw[6]), s2c(sw[7])),
-                r: Surface(s2c(sr[0]), s2c(sr[1]), s2c(sr[2]), s2c(sr[3]),
-                           s2c(sr[4]), s2c(sr[5]), s2c(sr[6]), s2c(sr[7])),
-                b: Surface(s2c(sb[0]), s2c(sb[1]), s2c(sb[2]), s2c(sb[3]),
-                           s2c(sb[4]), s2c(sb[5]), s2c(sb[6]), s2c(sb[7])),
-                o: Surface(s2c(so[0]), s2c(so[1]), s2c(so[2]), s2c(so[3]),
-                           s2c(so[4]), s2c(so[5]), s2c(so[6]), s2c(so[7])),
-                g: Surface(s2c(sg[0]), s2c(sg[1]), s2c(sg[2]), s2c(sg[3]),
-                           s2c(sg[4]), s2c(sg[5]), s2c(sg[6]), s2c(sg[7])),
-                y: Surface(s2c(sy[0]), s2c(sy[1]), s2c(sy[2]), s2c(sy[3]),
-                           s2c(sy[4]), s2c(sy[5]), s2c(sy[6]), s2c(sy[7])))
+    let sw = collist[0].map({s2c($0)})
+    let sr = collist[1].map({s2c($0)})
+    let sb = collist[2].map({s2c($0)})
+    let so = collist[3].map({s2c($0)})
+    let sg = collist[4].map({s2c($0)})
+    let sy = collist[5].map({s2c($0)})
+    return Cube(w: Surface(sw), r: Surface(sr), b: Surface(sb),
+                o: Surface(so), g: Surface(sg), y: Surface(sy))
 }
 
 
 func revOp(_ x: Op) -> Op {
     switch x {
-    case Op.U: return Op.U_
-    case Op.L: return Op.L_
-    case Op.R: return Op.R_
-    case Op.B: return Op.B_
-    case Op.D: return Op.D_
-    case Op.F: return Op.F_
-    case Op.Y: return Op.Y_
-    case Op.Z: return Op.Z_
-    case Op.U_: return Op.U
-    case Op.L_: return Op.L
-    case Op.R_: return Op.R
-    case Op.B_: return Op.B
-    case Op.D_: return Op.D
-    case Op.F_: return Op.F
-    case Op.Y_: return Op.Y
-    case Op.Z_: return Op.Z
+    case .U: return .U_
+    case .L: return .L_
+    case .R: return .R_
+    case .B: return .B_
+    case .D: return .D_
+    case .F: return .F_
+    case .Y: return .Y_
+    case .Z: return .Z_
+    case .U_: return .U
+    case .L_: return .L
+    case .R_: return .R
+    case .B_: return .B
+    case .D_: return .D
+    case .F_: return .F
+    case .Y_: return .Y
+    case .Z_: return .Z
     default: return x
     }
 }
@@ -251,22 +243,22 @@ func expandOp(_ xxs_arg: [Op]) -> [Op] {
     let x = xxs.remove(at: 0) // length: >=1
     let xs = xxs
     switch x {
-    case Op.R2: return [Op.R, Op.R] + expandOp(xs)
-    case Op.L2: return [Op.L, Op.L] + expandOp(xs)
-    case Op.D2: return [Op.D, Op.D] + expandOp(xs)
-    case Op.U2: return [Op.U, Op.U] + expandOp(xs)
-    case Op.B2: return [Op.B, Op.B] + expandOp(xs)
-    case Op.F2: return [Op.F, Op.F] + expandOp(xs)
-    case Op.Y2: return [Op.Y, Op.Y] + expandOp(xs)
-    case Op.Z2: return [Op.Z, Op.Z] + expandOp(xs)
-    case Op.R_2: return [Op.R, Op.R] + expandOp(xs)
-    case Op.L_2: return [Op.L, Op.L] + expandOp(xs)
-    case Op.D_2: return [Op.D, Op.D] + expandOp(xs)
-    case Op.U_2: return [Op.U, Op.U] + expandOp(xs)
-    case Op.B_2: return [Op.B, Op.B] + expandOp(xs)
-    case Op.F_2: return [Op.F, Op.F] + expandOp(xs)
-    case Op.Y_2: return [Op.Y, Op.Y] + expandOp(xs)
-    case Op.Z_2: return [Op.Z, Op.Z] + expandOp(xs)
+    case .R2: return [.R, .R] + expandOp(xs)
+    case .L2: return [.L, .L] + expandOp(xs)
+    case .D2: return [.D, .D] + expandOp(xs)
+    case .U2: return [.U, .U] + expandOp(xs)
+    case .B2: return [.B, .B] + expandOp(xs)
+    case .F2: return [.F, .F] + expandOp(xs)
+    case .Y2: return [.Y, .Y] + expandOp(xs)
+    case .Z2: return [.Z, .Z] + expandOp(xs)
+    case .R_2: return [.R, .R] + expandOp(xs)
+    case .L_2: return [.L, .L] + expandOp(xs)
+    case .D_2: return [.D, .D] + expandOp(xs)
+    case .U_2: return [.U, .U] + expandOp(xs)
+    case .B_2: return [.B, .B] + expandOp(xs)
+    case .F_2: return [.F, .F] + expandOp(xs)
+    case .Y_2: return [.Y, .Y] + expandOp(xs)
+    case .Z_2: return [.Z, .Z] + expandOp(xs)
     default: return [x] + expandOp(xs)
     }
 }
@@ -285,29 +277,29 @@ func exchangeOp(_ xxs_arg: [Op]) -> [Op] {
     let xs = xxs
     switch (x, y) {
         // Y
-    case (Op.Y, Op.U): return [y] + exchangeOp([x] + xs)
-    case (Op.Y, Op.U_): return [y] + exchangeOp([x] + xs)
-    case (Op.Y_, Op.U): return [y] + exchangeOp([x] + xs)
-    case (Op.Y_, Op.U_): return [y] + exchangeOp([x] + xs)
-    case (Op.Y, Op.D): return [y] + exchangeOp([x] + xs)
-    case (Op.Y, Op.D_): return [y] + exchangeOp([x] + xs)
-    case (Op.Y_, Op.D): return [y] + exchangeOp([x] + xs)
-    case (Op.Y_, Op.D_): return [y] + exchangeOp([x] + xs)
+    case (.Y, .U): return [y] + exchangeOp([x] + xs)
+    case (.Y, .U_): return [y] + exchangeOp([x] + xs)
+    case (.Y_, .U): return [y] + exchangeOp([x] + xs)
+    case (.Y_, .U_): return [y] + exchangeOp([x] + xs)
+    case (.Y, .D): return [y] + exchangeOp([x] + xs)
+    case (.Y, .D_): return [y] + exchangeOp([x] + xs)
+    case (.Y_, .D): return [y] + exchangeOp([x] + xs)
+    case (.Y_, .D_): return [y] + exchangeOp([x] + xs)
                        // D
-    case (Op.D, Op.U): return [y] + exchangeOp([x] + xs)
-    case (Op.D, Op.U_): return [y] + exchangeOp([x] + xs)
-    case (Op.D_, Op.U): return [y] + exchangeOp([x] + xs)
-    case (Op.D_, Op.U_): return [y] + exchangeOp([x] + xs)
+    case (.D, .U): return [y] + exchangeOp([x] + xs)
+    case (.D, .U_): return [y] + exchangeOp([x] + xs)
+    case (.D_, .U): return [y] + exchangeOp([x] + xs)
+    case (.D_, .U_): return [y] + exchangeOp([x] + xs)
                        // B
-    case (Op.B, Op.F): return [y] + exchangeOp([x] + xs)
-    case (Op.B, Op.F_): return [y] + exchangeOp([x] + xs)
-    case (Op.B_, Op.F): return [y] + exchangeOp([x] + xs)
-    case (Op.B_, Op.F_): return [y] + exchangeOp([x] + xs)
+    case (.B, .F): return [y] + exchangeOp([x] + xs)
+    case (.B, .F_): return [y] + exchangeOp([x] + xs)
+    case (.B_, .F): return [y] + exchangeOp([x] + xs)
+    case (.B_, .F_): return [y] + exchangeOp([x] + xs)
                        // L
-    case (Op.L, Op.R): return [y] + exchangeOp([x] + xs)
-    case (Op.L, Op.R_): return [y] + exchangeOp([x] + xs)
-    case (Op.L_, Op.R): return [y] + exchangeOp([x] + xs)
-    case (Op.L_, Op.R_): return [y] + exchangeOp([x] + xs)
+    case (.L, .R): return [y] + exchangeOp([x] + xs)
+    case (.L, .R_): return [y] + exchangeOp([x] + xs)
+    case (.L_, .R): return [y] + exchangeOp([x] + xs)
+    case (.L_, .R_): return [y] + exchangeOp([x] + xs)
                        //
     default: return [x] + exchangeOp([y] + xs)
     }
@@ -376,22 +368,22 @@ func mergeOp(_ xxs_arg: [Op]) -> [Op] {
     let y = xxs.remove(at: 0)
     let ys = xxs
     switch (x, y) {
-    case (Op.U, Op.U): return [Op.U2] + mergeOp(ys)
-    case (Op.B, Op.B): return [Op.B2] + mergeOp(ys)
-    case (Op.F, Op.F): return [Op.F2] + mergeOp(ys)
-    case (Op.D, Op.D): return [Op.D2] + mergeOp(ys)
-    case (Op.L, Op.L): return [Op.L2] + mergeOp(ys)
-    case (Op.R, Op.R): return [Op.R2] + mergeOp(ys)
-    case (Op.Y, Op.Y): return [Op.Y2] + mergeOp(ys)
-    case (Op.Z, Op.Z): return [Op.Z2] + mergeOp(ys)
-    case (Op.U_, Op.U_): return [Op.U2] + mergeOp(ys)
-    case (Op.B_, Op.B_): return [Op.B2] + mergeOp(ys)
-    case (Op.F_, Op.F_): return [Op.F2] + mergeOp(ys)
-    case (Op.D_, Op.D_): return [Op.D2] + mergeOp(ys)
-    case (Op.L_, Op.L_): return [Op.L2] + mergeOp(ys)
-    case (Op.R_, Op.R_): return [Op.R2] + mergeOp(ys)
-    case (Op.Y_, Op.Y_): return [Op.Y2] + mergeOp(ys)
-    case (Op.Z_, Op.Z_): return [Op.Z2] + mergeOp(ys)
+    case (.U, .U): return [.U2] + mergeOp(ys)
+    case (.B, .B): return [.B2] + mergeOp(ys)
+    case (.F, .F): return [.F2] + mergeOp(ys)
+    case (.D, .D): return [.D2] + mergeOp(ys)
+    case (.L, .L): return [.L2] + mergeOp(ys)
+    case (.R, .R): return [.R2] + mergeOp(ys)
+    case (.Y, .Y): return [.Y2] + mergeOp(ys)
+    case (.Z, .Z): return [.Z2] + mergeOp(ys)
+    case (.U_, .U_): return [.U2] + mergeOp(ys)
+    case (.B_, .B_): return [.B2] + mergeOp(ys)
+    case (.F_, .F_): return [.F2] + mergeOp(ys)
+    case (.D_, .D_): return [.D2] + mergeOp(ys)
+    case (.L_, .L_): return [.L2] + mergeOp(ys)
+    case (.R_, .R_): return [.R2] + mergeOp(ys)
+    case (.Y_, .Y_): return [.Y2] + mergeOp(ys)
+    case (.Z_, .Z_): return [.Z2] + mergeOp(ys)
     default: return [x] + mergeOp(xs)
     }
 }
@@ -408,29 +400,29 @@ func optimizeOp(_ l: [Op]) -> [Op] {
 // solver
 func solveQ(_ q: Cube) -> [Op] {
     var pair = (q, [Op.FstLayer])
-    pair = step(pair, setRY(Op.N))
-    pair = step(pair, {[Op.Y] + setRY(Op.Y)($0.dupCube().turn(Op.Y)) + [Op.Y_]})
-    pair = step(pair, {[Op.Y2] + setRY(Op.Y2)($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
-    pair = step(pair, {[Op.Y_] + setRY(Op.Y_)($0.dupCube().turn(Op.Y_)) + [Op.Y]})
-    pair = step(pair, {(_) in [Op.SndLayer]})
-    pair = step(pair, setYGR(Op.N))
-    pair = step(pair, {[Op.Y] + setYGR(Op.Y)($0.dupCube().turn(Op.Y)) + [Op.Y_]})
-    pair = step(pair, {[Op.Y2] + setYGR(Op.Y2)($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
-    pair = step(pair, {[Op.Y_] + setYGR(Op.Y_)($0.dupCube().turn(Op.Y_)) + [Op.Y]})
-    pair = step(pair, setGR(Op.N))
-    pair = step(pair, {[Op.Y] + setGR(Op.Y)($0.dupCube().turn(Op.Y)) + [Op.Y_]})
-    pair = step(pair, {[Op.Y2] + setGR(Op.Y2)($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
-    pair = step(pair, {[Op.Y_] + setGR(Op.Y_)($0.dupCube().turn(Op.Y_)) + [Op.Y]})
+    pair = step(pair, setRY(.N))
+    pair = step(pair, {[.Y] + setRY(.Y)($0.dupCube().turn(.Y)) + [.Y_]})
+    pair = step(pair, {[.Y2] + setRY(.Y2)($0.dupCube().turn(.Y2)) + [.Y2]})
+    pair = step(pair, {[.Y_] + setRY(.Y_)($0.dupCube().turn(.Y_)) + [.Y]})
+    pair = step(pair, {(_) in [.SndLayer]})
+    pair = step(pair, setYGR(.N))
+    pair = step(pair, {[.Y] + setYGR(.Y)($0.dupCube().turn(.Y)) + [.Y_]})
+    pair = step(pair, {[.Y2] + setYGR(.Y2)($0.dupCube().turn(.Y2)) + [.Y2]})
+    pair = step(pair, {[.Y_] + setYGR(.Y_)($0.dupCube().turn(.Y_)) + [.Y]})
+    pair = step(pair, setGR(.N))
+    pair = step(pair, {[.Y] + setGR(.Y)($0.dupCube().turn(.Y)) + [.Y_]})
+    pair = step(pair, {[.Y2] + setGR(.Y2)($0.dupCube().turn(.Y2)) + [.Y2]})
+    pair = step(pair, {[.Y_] + setGR(.Y_)($0.dupCube().turn(.Y_)) + [.Y]})
     pair = step(pair, oneToThree)
     pair = step(pair, threeToFive)
     pair = step(pair, fiveToNine)
-    pair = step(pair, {[Op.Y] + fiveToNine($0.dupCube().turn(Op.Y)) + [Op.Y_]})
-    pair = step(pair, {[Op.Y2] + fiveToNine($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
-    pair = step(pair, {[Op.Y_] + fiveToNine($0.dupCube().turn(Op.Y_)) + [Op.Y]})
+    pair = step(pair, {[.Y] + fiveToNine($0.dupCube().turn(.Y)) + [.Y_]})
+    pair = step(pair, {[.Y2] + fiveToNine($0.dupCube().turn(.Y2)) + [.Y2]})
+    pair = step(pair, {[.Y_] + fiveToNine($0.dupCube().turn(.Y_)) + [.Y]})
     pair = step(pair, nineToFinish)
-    pair = step(pair, {[Op.Y] + nineToFinish($0.dupCube().turn(Op.Y)) + [Op.Y_]})
-    pair = step(pair, {[Op.Y2] + nineToFinish($0.dupCube().turn(Op.Y2)) + [Op.Y2]})
-    pair = step(pair, {[Op.Y_] + nineToFinish($0.dupCube().turn(Op.Y_)) + [Op.Y]})
+    pair = step(pair, {[.Y] + nineToFinish($0.dupCube().turn(.Y)) + [.Y_]})
+    pair = step(pair, {[.Y2] + nineToFinish($0.dupCube().turn(.Y2)) + [.Y2]})
+    pair = step(pair, {[.Y_] + nineToFinish($0.dupCube().turn(.Y_)) + [.Y]})
     pair = step(pair, finishQ)
     let (_, ops) = pair
     return optimizeOp(ops)
@@ -445,29 +437,29 @@ func step(_ pair: (Cube, [Op]), _ slvr: (Cube) -> [Op]) -> (Cube, [Op]) {
 
 func finishQ(_ q: Cube) -> [Op] {
     if q.check() { return []
-    } else if q.dupCube().turn(Op.U).check() { return [Op.U]
-    } else if q.dupCube().turn(Op.U2).check() { return [Op.U2]
-    } else if q.dupCube().turn(Op.U_).check() { return [Op.U_]
-    } else { return [Op.U] // error_finishQ
+    } else if q.dupCube().turn(.U).check() { return [.U]
+    } else if q.dupCube().turn(.U2).check() { return [.U2]
+    } else if q.dupCube().turn(.U_).check() { return [.U_]
+    } else { return [.U] // error_finishQ
     }
 }
 
 
 func rotc(_ op:Op, _ c:Color) -> Color {
     switch op {
-    case Op.N: return c
-    case Op.Y:
+    case .N: return c
+    case .Y:
         switch c {
-        case Color.Red: return Color.Blue
-        case Color.Blue: return Color.Orange
-        case Color.Orange: return Color.Green
-        case Color.Green: return Color.Red
+        case .Red: return .Blue
+        case .Blue: return .Orange
+        case .Orange: return .Green
+        case .Green: return .Red
         default: return c
         }
-    case Op.Y2:
-        return rotc(Op.Y, (rotc(Op.Y, c)))
-    case Op.Y_:
-        return rotc(Op.Y, (rotc(Op.Y2, c)))
+    case .Y2:
+        return rotc(.Y, (rotc(.Y, c)))
+    case .Y_:
+        return rotc(.Y, (rotc(.Y2, c)))
     default:
         return c
     }
@@ -483,38 +475,38 @@ func setRY(_ tc: Op) -> (_ q: Cube) -> [Op] {
     let sw = q.w.getColor
     let sg = q.g.getColor
     let so = q.o.getColor
-    let yellow = rotc(tc, Color.Yellow)
-    let red = rotc(tc, Color.Red)
+    let yellow = rotc(tc, .Yellow)
+    let red = rotc(tc, .Red)
 
     if sr(2) == red && sy(6) == yellow { return []
 //
-    } else if sr(2) == yellow && sy(6) == red { return [Op.F_, Op.D, Op.R_, Op.D_]
-    } else if sr(4) == yellow && sb(8) == red { return [Op.D, Op.R_, Op.D_]
-    } else if sr(4) == red && sb(8) == yellow { return [Op.F]
-    } else if sr(6) == red && sw(2) == yellow { return [Op.F, Op.F]
-    } else if sr(6) == yellow && sw(2) == red { return [Op.U_, Op.R_, Op.F, Op.R]
-    } else if sr(8) == yellow && sg(4) == red { return [Op.D_, Op.L, Op.D]
-    } else if sr(8) == red && sg(4) == yellow { return [Op.F_]
+    } else if sr(2) == yellow && sy(6) == red { return [.F_, .D, .R_, .D_]
+    } else if sr(4) == yellow && sb(8) == red { return [.D, .R_, .D_]
+    } else if sr(4) == red && sb(8) == yellow { return [.F]
+    } else if sr(6) == red && sw(2) == yellow { return [.F, .F]
+    } else if sr(6) == yellow && sw(2) == red { return [.U_, .R_, .F, .R]
+    } else if sr(8) == yellow && sg(4) == red { return [.D_, .L, .D]
+    } else if sr(8) == red && sg(4) == yellow { return [.F_]
 //
-    } else if sb(2) == red && sy(4) == yellow { return [Op.R, Op.D, Op.R_, Op.D_]
-    } else if sb(2) == yellow && sy(4) == red { return [Op.R, Op.F]
-    } else if sb(4) == yellow && so(8) == red { return [Op.B, Op.U, Op.U, Op.B_, Op.F, Op.F]
-    } else if sb(4) == red && so(8) == yellow { return [Op.R_, Op.U, Op.R, Op.F, Op.F]
-    } else if sb(6) == red && sw(4) == yellow { return [Op.U, Op.F, Op.F]
-    } else if sb(6) == yellow && sw(4) == red { return [Op.R_, Op.F, Op.R]
+    } else if sb(2) == red && sy(4) == yellow { return [.R, .D, .R_, .D_]
+    } else if sb(2) == yellow && sy(4) == red { return [.R, .F]
+    } else if sb(4) == yellow && so(8) == red { return [.B, .U, .U, .B_, .F, .F]
+    } else if sb(4) == red && so(8) == yellow { return [.R_, .U, .R, .F, .F]
+    } else if sb(6) == red && sw(4) == yellow { return [.U, .F, .F]
+    } else if sb(6) == yellow && sw(4) == red { return [.R_, .F, .R]
 //
-    } else if so(2) == red && sy(2) == yellow { return [Op.B, Op.B, Op.U, Op.U, Op.F, Op.F]
-    } else if so(2) == yellow && sy(2) == red { return [Op.B, Op.B, Op.U, Op.R_, Op.F, Op.R]
-    } else if so(4) == yellow && sg(8) == red { return [Op.L, Op.U_, Op.L_, Op.F, Op.F]
-    } else if so(4) == red && sg(8) == yellow { return [Op.B_, Op.U_, Op.B, Op.U_, Op.F, Op.F]
-    } else if so(6) == red && sw(6) == yellow { return [Op.U, Op.U, Op.F, Op.F]
-    } else if so(6) == yellow && sw(6) == red { return [Op.U_, Op.L, Op.F_, Op.L_]
+    } else if so(2) == red && sy(2) == yellow { return [.B, .B, .U, .U, .F, .F]
+    } else if so(2) == yellow && sy(2) == red { return [.B, .B, .U, .R_, .F, .R]
+    } else if so(4) == yellow && sg(8) == red { return [.L, .U_, .L_, .F, .F]
+    } else if so(4) == red && sg(8) == yellow { return [.B_, .U_, .B, .U_, .F, .F]
+    } else if so(6) == red && sw(6) == yellow { return [.U, .U, .F, .F]
+    } else if so(6) == yellow && sw(6) == red { return [.U_, .L, .F_, .L_]
 //
-    } else if sg(2) == red && sy(8) == yellow { return [Op.L_, Op.D_, Op.L, Op.D]
-    } else if sg(2) == yellow && sy(8) == red { return [Op.L_, Op.F_]
-    } else if sg(6) == red && sw(8) == yellow { return [Op.U_, Op.F, Op.F]
-    } else if sg(6) == yellow && sw(8) == red { return [Op.L, Op.F_, Op.L_]
-    } else { return [Op.U] // error_setRY
+    } else if sg(2) == red && sy(8) == yellow { return [.L_, .D_, .L, .D]
+    } else if sg(2) == yellow && sy(8) == red { return [.L_, .F_]
+    } else if sg(6) == red && sw(8) == yellow { return [.U_, .F, .F]
+    } else if sg(6) == yellow && sw(8) == red { return [.L, .F_, .L_]
+    } else { return [.U] // error_setRY
     }
   }
   return setRY2
@@ -527,43 +519,43 @@ func setYGR(_ tc: Op) -> (_ q: Cube) -> [Op] {
     let sb = q.b.getColor
     let sg = q.g.getColor
     let so = q.o.getColor
-    let yellow = rotc(tc, Color.Yellow)
-    let green = rotc(tc, Color.Green)
-    let red = rotc(tc, Color.Red)
+    let yellow = rotc(tc, .Yellow)
+    let green = rotc(tc, .Green)
+    let red = rotc(tc, .Red)
 
     if sr(1) == red && sg(3) == green { return []
 //
-    } else if sr(1) == yellow && sg(3) == red { return [Op.F, Op.U, Op.F_, Op.U_, Op.F, Op.U, Op.F_]
-    } else if sr(1) == green && sg(3) == yellow { return [Op.L_, Op.U_, Op.L, Op.U, Op.L_, Op.U_, Op.L]
+    } else if sr(1) == yellow && sg(3) == red { return [.F, .U, .F_, .U_, .F, .U, .F_]
+    } else if sr(1) == green && sg(3) == yellow { return [.L_, .U_, .L, .U, .L_, .U_, .L]
 //
-    } else if sr(3) == yellow && sb(1) == green { return [Op.F_, Op.U_, Op.F, Op.U, Op.U, Op.L_, Op.U_, Op.L]
-    } else if sr(3) == red && sb(1) == yellow { return [Op.R, Op.U, Op.R_, Op.F, Op.U, Op.F_]
-    } else if sr(3) == green && sb(1) == red { return [Op.R, Op.U, Op.R_, Op.L_, Op.U_, Op.L]
+    } else if sr(3) == yellow && sb(1) == green { return [.F_, .U_, .F, .U, .U, .L_, .U_, .L]
+    } else if sr(3) == red && sb(1) == yellow { return [.R, .U, .R_, .F, .U, .F_]
+    } else if sr(3) == green && sb(1) == red { return [.R, .U, .R_, .L_, .U_, .L]
 //
-    } else if sr(5) == green && sb(7) == yellow { return [Op.L_, Op.U, Op.L]
-    } else if sr(5) == yellow && sb(7) == red { return [Op.U, Op.L_, Op.U_, Op.L]
-    } else if sr(5) == red && sb(7) == green { return [Op.U, Op.L_, Op.U, Op.L, Op.U_, Op.U_, Op.L_, Op.U_, Op.L]
+    } else if sr(5) == green && sb(7) == yellow { return [.L_, .U, .L]
+    } else if sr(5) == yellow && sb(7) == red { return [.U, .L_, .U_, .L]
+    } else if sr(5) == red && sb(7) == green { return [.U, .L_, .U, .L, .U_, .U_, .L_, .U_, .L]
 //
-    } else if sr(7) == red && sg(5) == yellow { return [Op.L_, Op.U_, Op.L]
-    } else if sr(7) == green && sg(5) == red { return [Op.F, Op.U, Op.U, Op.F_, Op.U_, Op.F, Op.U, Op.F_]
-    } else if sr(7) == yellow && sg(5) == green { return [Op.F, Op.U, Op.F_]
+    } else if sr(7) == red && sg(5) == yellow { return [.L_, .U_, .L]
+    } else if sr(7) == green && sg(5) == red { return [.F, .U, .U, .F_, .U_, .F, .U, .F_]
+    } else if sr(7) == yellow && sg(5) == green { return [.F, .U, .F_]
 //
-    } else if sb(3) == green && so(1) == red { return [Op.R_, Op.U_, Op.U_, Op.R, Op.F, Op.U, Op.F_]
-    } else if sb(3) == yellow && so(1) == green { return [Op.R_, Op.U_, Op.R, Op.U_, Op.L_, Op.U_, Op.L]
-    } else if sb(3) == red && so(1) == yellow { return [Op.B, Op.U, Op.B_, Op.U, Op.F, Op.U, Op.F_]
+    } else if sb(3) == green && so(1) == red { return [.R_, .U_, .U_, .R, .F, .U, .F_]
+    } else if sb(3) == yellow && so(1) == green { return [.R_, .U_, .R, .U_, .L_, .U_, .L]
+    } else if sb(3) == red && so(1) == yellow { return [.B, .U, .B_, .U, .F, .U, .F_]
 //
-    } else if sb(5) == green && so(7) == yellow { return [Op.U, Op.U, Op.F, Op.U, Op.F_]
-    } else if sb(5) == red && so(7) == green { return [Op.U, Op.U, Op.L_, Op.U, Op.L, Op.U, Op.U, Op.L_, Op.U_, Op.L]
-    } else if sb(5) == yellow && so(7) == red { return [Op.U, Op.U, Op.L_, Op.U_, Op.L]
+    } else if sb(5) == green && so(7) == yellow { return [.U, .U, .F, .U, .F_]
+    } else if sb(5) == red && so(7) == green { return [.U, .U, .L_, .U, .L, .U, .U, .L_, .U_, .L]
+    } else if sb(5) == yellow && so(7) == red { return [.U, .U, .L_, .U_, .L]
 //
-    } else if so(3) == red && sg(1) == yellow { return [Op.L, Op.U, Op.L_, Op.U, Op.U, Op.F, Op.U, Op.F_]
-    } else if so(3) == yellow && sg(1) == green { return [Op.B_, Op.U_, Op.B, Op.L_, Op.U_, Op.L]
-    } else if so(3) == green && sg(1) == red { return [Op.L, Op.U_, Op.L_, Op.U_, Op.F, Op.U, Op.F_]
+    } else if so(3) == red && sg(1) == yellow { return [.L, .U, .L_, .U, .U, .F, .U, .F_]
+    } else if so(3) == yellow && sg(1) == green { return [.B_, .U_, .B, .L_, .U_, .L]
+    } else if so(3) == green && sg(1) == red { return [.L, .U_, .L_, .U_, .F, .U, .F_]
 //
-    } else if so(5) == yellow && sg(7) == red { return [Op.F, Op.U_, Op.F_]
-    } else if so(5) == green && sg(7) == yellow { return [Op.U_, Op.F, Op.U, Op.F_]
-    } else if so(5) == red && sg(7) == green { return [Op.F, Op.U, Op.U, Op.F_, Op.L_, Op.U_, Op.L]
-    } else { return [Op.U] // error_setYGR
+    } else if so(5) == yellow && sg(7) == red { return [.F, .U_, .F_]
+    } else if so(5) == green && sg(7) == yellow { return [.U_, .F, .U, .F_]
+    } else if so(5) == red && sg(7) == green { return [.F, .U, .U, .F_, .L_, .U_, .L]
+    } else { return [.U] // error_setYGR
     }
   }
   return setYGR2
@@ -577,37 +569,37 @@ func setGR(_ tc: Op) -> (_ q: Cube) -> [Op] {
     let sw = q.w.getColor
     let sb = q.b.getColor
     let so = q.o.getColor
-    let green = rotc(tc, Color.Green)
-    let red = rotc(tc, Color.Red)
+    let green = rotc(tc, .Green)
+    let red = rotc(tc, .Red)
 
     if sr(8) == red && sg(4) == green { return []
 //
     } else if sr(8) == green && sg(4) == red {
-        return [Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L, Op.U_, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
-    } else if sr(6) == red && sw(2) == green { return [Op.U_, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
-    } else if sr(6) == green && sw(2) == red { return [Op.U, Op.U, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
+        return [.F, .U_, .F_, .U_, .L_, .U, .L, .U_, .F, .U_, .F_, .U_, .L_, .U, .L]
+    } else if sr(6) == red && sw(2) == green { return [.U_, .L_, .U, .L, .U, .F, .U_, .F_]
+    } else if sr(6) == green && sw(2) == red { return [.U, .U, .F, .U_, .F_, .U_, .L_, .U, .L]
     } else if sr(4) == green && sb(8) == red { 
-        return [Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.U, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
+        return [.R, .U_, .R_, .U_, .F_, .U, .F, .U, .L_, .U, .L, .U, .F, .U_, .F_]
     } else if sr(4) == red && sb(8) == green {
-        return [Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
+        return [.R, .U_, .R_, .U_, .F_, .U, .F, .F, .U_, .F_, .U_, .L_, .U, .L]
 //
     } else if sb(4) == green && so(8) == red {
-        return [Op.Y, Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.Y_, Op.U, Op.U, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
+        return [.Y, .R, .U_, .R_, .U_, .F_, .U, .F, .Y_, .U, .U, .L_, .U, .L, .U, .F, .U_, .F_]
     } else if sb(4) == red && so(8) == green {
-        return [Op.Y, Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.Y_, Op.U, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
-    } else if sb(6) == red && sw(4) == green { return [Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
-    } else if sb(6) == green && sw(4) == red { return [Op.U_, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
+        return [.Y, .R, .U_, .R_, .U_, .F_, .U, .F, .Y_, .U, .F, .U_, .F_, .U_, .L_, .U, .L]
+    } else if sb(6) == red && sw(4) == green { return [.L_, .U, .L, .U, .F, .U_, .F_]
+    } else if sb(6) == green && sw(4) == red { return [.U_, .F, .U_, .F_, .U_, .L_, .U, .L]
 //
-    } else if so(6) == red && sw(6) == green { return [Op.U, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
-    } else if so(6) == green && sw(6) == red { return [Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
+    } else if so(6) == red && sw(6) == green { return [.U, .L_, .U, .L, .U, .F, .U_, .F_]
+    } else if so(6) == green && sw(6) == red { return [.F, .U_, .F_, .U_, .L_, .U, .L]
     } else if so(4) == red && sg(8) == green {
-        return [Op.Y, Op.Y, Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.Y, Op.Y, Op.U, Op.U, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
+        return [.Y, .Y, .R, .U_, .R_, .U_, .F_, .U, .F, .Y, .Y, .U, .U, .F, .U_, .F_, .U_, .L_, .U, .L]
     } else if so(4) == green && sg(8) == red {
-        return [Op.Y, Op.Y, Op.R, Op.U_, Op.R_, Op.U_, Op.F_, Op.U, Op.F, Op.Y, Op.Y, Op.U_, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
+        return [.Y, .Y, .R, .U_, .R_, .U_, .F_, .U, .F, .Y, .Y, .U_, .L_, .U, .L, .U, .F, .U_, .F_]
 //
-    } else if sg(6) == red && sw(8) == green { return [Op.U, Op.U, Op.L_, Op.U, Op.L, Op.U, Op.F, Op.U_, Op.F_]
-    } else if sg(6) == green && sw(8) == red { return [Op.U, Op.F, Op.U_, Op.F_, Op.U_, Op.L_, Op.U, Op.L]
-    } else { return [Op.U] // error_setGR
+    } else if sg(6) == red && sw(8) == green { return [.U, .U, .L_, .U, .L, .U, .F, .U_, .F_]
+    } else if sg(6) == green && sw(8) == red { return [.U, .F, .U_, .F_, .U_, .L_, .U, .L]
+    } else { return [.U] // error_setGR
     }
   }
   return setGR2
@@ -616,9 +608,9 @@ func setGR(_ tc: Op) -> (_ q: Cube) -> [Op] {
 // PLL1
 func oneToThree(_ q: Cube) -> [Op] {
     let swq = q.w.getColor
-    if swq(2) != Color.White && swq(4) != Color.White &&
-         swq(6) != Color.White && swq(8) != Color.White { 
-        return [Op.PLL1p] + [Op.F, Op.R, Op.U, Op.R_, Op.U_, Op.F_]
+    if swq(2) != .White && swq(4) != .White &&
+         swq(6) != .White && swq(8) != .White { 
+        return [.PLL1p] + [.F, .R, .U, .R_, .U_, .F_]
     } else { return []
     }
 }
@@ -628,12 +620,12 @@ func threeToFive(_ q: Cube) -> [Op] {
     let sq = q.w.getColor
     let (w2, w4, w6, w8) = (sq(2), sq(4), sq(6), sq(8))
     
-    if w2 == w4 && w2 != w6 && w2 != w8 { return [Op.PLL21p] + [Op.B, Op.U, Op.L, Op.U_, Op.L_, Op.B_]
-    } else if  w4 == w6 && w4 != w8 && w4 != w2 { return [Op.PLL22p] + [Op.U, Op.B, Op.U, Op.L, Op.U_, Op.L_, Op.B_]
-    } else if  w6 == w8 && w6 != w2 && w6 != w4 { return [Op.PLL23p] + [Op.U, Op.U, Op.B, Op.U, Op.L, Op.U_, Op.L_, Op.B_]
-    } else if  w8 == w2 && w8 != w4 && w8 != w6 { return [Op.PLL24p] + [Op.U_, Op.B, Op.U, Op.L, Op.U_, Op.L_, Op.B_]
-    } else if  w4 == w8 && w4 != w2 && w4 != w6 { return [Op.PLL25p] + [Op.F, Op.R, Op.U, Op.R_, Op.U_, Op.F_]
-    } else if  w2 == w6 && w2 != w4 && w2 != w8 { return [Op.PLL26p] + [Op.U, Op.F, Op.R, Op.U, Op.R_, Op.U_, Op.F_]
+    if w2 == w4 && w2 != w6 && w2 != w8 { return [.PLL21p] + [.B, .U, .L, .U_, .L_, .B_]
+    } else if  w4 == w6 && w4 != w8 && w4 != w2 { return [.PLL22p] + [.U, .B, .U, .L, .U_, .L_, .B_]
+    } else if  w6 == w8 && w6 != w2 && w6 != w4 { return [.PLL23p] + [.U, .U, .B, .U, .L, .U_, .L_, .B_]
+    } else if  w8 == w2 && w8 != w4 && w8 != w6 { return [.PLL24p] + [.U_, .B, .U, .L, .U_, .L_, .B_]
+    } else if  w4 == w8 && w4 != w2 && w4 != w6 { return [.PLL25p] + [.F, .R, .U, .R_, .U_, .F_]
+    } else if  w2 == w6 && w2 != w4 && w2 != w8 { return [.PLL26p] + [.U, .F, .R, .U, .R_, .U_, .F_]
     } else { return []
     }
 }
@@ -648,16 +640,16 @@ func fiveToNine(_ q: Cube) -> [Op] {
     let (w1, w3, w5, w7) = (wq(1), wq(3), wq(5), wq(7))
 
     if r5 == o7 && o7 == g5 && g5 == g7 {
-        return [Op.R, Op.U, Op.U, Op.R_, Op.R_, Op.U_, Op.R, Op.R, Op.U_, Op.R_, Op.R_, Op.U, Op.U, Op.R]
+        return [.R, .U, .U, .R_, .R_, .U_, .R, .R, .U_, .R_, .R_, .U, .U, .R]
     } else if  w1 == w3 && w3 == o5 && o5 == o7 {
-        return [Op.R, Op.R, Op.D_, Op.R, Op.U, Op.U, Op.R_, Op.D, Op.R, Op.U, Op.U, Op.R]
-    } else if  r5 == b5 && b5 == o5 && o5 == w1 { return [Op.R, Op.U, Op.R_, Op.U, Op.R, Op.U_, Op.U_, Op.R_]
-    } else if  r7 == b7 && b7 == g7 && g7 == w5 { return [Op.R, Op.U_, Op.U_, Op.R_, Op.U_, Op.R, Op.U_, Op.R_]
+        return [.R, .R, .D_, .R, .U, .U, .R_, .D, .R, .U, .U, .R]
+    } else if  r5 == b5 && b5 == o5 && o5 == w1 { return [.R, .U, .R_, .U, .R, .U_, .U_, .R_]
+    } else if  r7 == b7 && b7 == g7 && g7 == w5 { return [.R, .U_, .U_, .R_, .U_, .R, .U_, .R_]
     } else if  r7 == r5 && r5 == o7 && o7 == o5 {
-        return [Op.R, Op.U_, Op.U_, Op.R_, Op.U_, Op.R, Op.U, Op.R_, Op.U_, Op.R, Op.U_, Op.R_]
+        return [.R, .U_, .U_, .R_, .U_, .R, .U, .R_, .U_, .R, .U_, .R_]
     } else if  r7 == b5 && b5 == w3 && w3 == w7 {
-        return [Op.L, Op.F_, Op.F_, Op.R_, Op.R_, Op.D, Op.R, Op.D_, Op.R, Op.F_, Op.F_, Op.L_]
-    } else if  r7 == w3 && w3 == w5 && w5 == o5 { return [Op.L, Op.F, Op.R_, Op.F_, Op.L_, Op.F, Op.R, Op.F_]
+        return [.L, .F_, .F_, .R_, .R_, .D, .R, .D_, .R, .F_, .F_, .L_]
+    } else if  r7 == w3 && w3 == w5 && w5 == o5 { return [.L, .F, .R_, .F_, .L_, .F, .R, .F_]
     } else { return []
     }
 }
@@ -671,49 +663,49 @@ func nineToFinish(_ q: Cube) -> [Op] {
     let (b5, b6, b7) = (q.b.getColor(5), q.b.getColor(6), q.b.getColor(7))
 
     if g6 == g7 && o5 == o6 && b5 == b7 && b7 == r6 { // A1
-        return [Op.A1p] + [Op.R, Op.R, Op.F, Op.F, Op.R_, Op.B_, Op.R, Op.F, Op.F, Op.R_, Op.B, Op.R_]
+        return [.A1p] + [.R, .R, .F, .F, .R_, .B_, .R, .F, .F, .R_, .B, .R_]
     } else if  g6 == g7 && o5 == o6 && r5 == r7 && r7 == b6 { // A2
-        return [Op.A2p] + [Op.R, Op.B_, Op.R, Op.F, Op.F, Op.R_, Op.B, Op.R, Op.F, Op.F, Op.R_, Op.R_]
+        return [.A2p] + [.R, .B_, .R, .F, .F, .R_, .B, .R, .F, .F, .R_, .R_]
     } else if  r6 == r7 && g5 == g7 && g5 != g6 && o5 == o6 { // T
-        return [Op.Tp] + [Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F, Op.R, Op.R, Op.U_, Op.R_, Op.U_, Op.R, Op.U, Op.R_, Op.F_]
+        return [.Tp] + [.R, .U, .R_, .U_, .R_, .F, .R, .R, .U_, .R_, .U_, .R, .U, .R_, .F_]
     } else if  o5 == o6 && o5 == o7 && r5 != r6 && r5 == r7 { 
         if r5 == b6 {
-            return [Op.U1p] + [Op.R, Op.R, Op.U, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.U_, Op.R_, Op.U, Op.R_] // U1
+            return [.U1p] + [.R, .R, .U, .R, .U, .R_, .U_, .R_, .U_, .R_, .U, .R_] // U1
         } else {
-            return [Op.U2p] + [Op.R, Op.U_, Op.R, Op.U, Op.R, Op.U, Op.R, Op.U_, Op.R_, Op.U_, Op.R_, Op.R_] // U2
+            return [.U2p] + [.R, .U_, .R, .U, .R, .U, .R, .U_, .R_, .U_, .R_, .R_] // U2
         }
     } else if  r6 == r7 && b5 == b6 && r7 == o5 && b6 != b7 { // Y
-        return [Op.Yp] + [Op.F, Op.R, Op.U_, Op.R_, Op.U_, Op.R, Op.U, Op.R_, Op.F_, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F, Op.R, Op.F_]
+        return [.Yp] + [.F, .R, .U_, .R_, .U_, .R, .U, .R_, .F_, .R, .U, .R_, .U_, .R_, .F, .R, .F_]
     } else if  r5 == r7 && r5 == b6 && r6 == b7 && g5 == g6 { // R2
-        return [Op.R2p] + [Op.R_, Op.U_, Op.U_, Op.R, Op.U_, Op.U_, Op.R_, Op.F, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F_, Op.R, Op.R, Op.U_]
+        return [.R2p] + [.R_, .U_, .U_, .R, .U_, .U_, .R_, .F, .R, .U, .R_, .U_, .R_, .F_, .R, .R, .U_]
     } else if  r5 == r7 && r5 == b6 && r6 == b7 && b5 == b7 { // Z
-        return [Op.Zp] + [Op.R_, Op.L, Op.F_, Op.R, Op.R, Op.L_, Op.L_, Op.B_, Op.R, Op.R, Op.L_, Op.L_, Op.F_, Op.R_, Op.L, Op.D, Op.D, Op.R, Op.R, Op.L_, Op.L_, Op.U]
+        return [.Zp] + [.R_, .L, .F_, .R, .R, .L_, .L_, .B_, .R, .R, .L_, .L_, .F_, .R_, .L, .D, .D, .R, .R, .L_, .L_, .U]
     } else if  r5 == r7 && r5 == g6 && r6 == g5 && g7 != g5 { // R1
-        return [Op.R1p] + [Op.L, Op.U, Op.U, Op.L_, Op.U, Op.U, Op.L, Op.F_, Op.L_, Op.U_, Op.L, Op.U, Op.L, Op.F, Op.L_, Op.L_, Op.U]
+        return [.R1p] + [.L, .U, .U, .L_, .U, .U, .L, .F_, .L_, .U_, .L, .U, .L, .F, .L_, .L_, .U]
     } else if  r5 == r7 && b5 == b7 && r5 == o6 && b5 == g6 { // H
-        return [Op.Hp] + [Op.M, Op.M, Op.U_, Op.M, Op.M, Op.U_, Op.U_, Op.M, Op.M, Op.U_, Op.M, Op.M]
+        return [.Hp] + [.M, .M, .U_, .M, .M, .U_, .U_, .M, .M, .U_, .M, .M]
     } else if  r5 == r6 && g5 == g7 && g7 == b6 && b7 == g6 { // G1
-        return [Op.G1p] + [Op.R, Op.R, Op.D, Op.Y, Op.R_, Op.U, Op.R_, Op.U_, Op.R, Op.D_, Op.Y_, Op.R_, Op.R_, Op.F_, Op.U, Op.F]
+        return [.G1p] + [.R, .R, .D, .Y, .R_, .U, .R_, .U_, .R, .D_, .Y_, .R_, .R_, .F_, .U, .F]
     } else if  r5 == r6 && r6 == o7 && g5 == g6 && g6 == g7 { // J2
-        return [Op.J2p] + [Op.R, Op.U, Op.R_, Op.F_, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F, Op.R, Op.R, Op.U_, Op.R_, Op.U_]
+        return [.J2p] + [.R, .U, .R_, .F_, .R, .U, .R_, .U_, .R_, .F, .R, .R, .U_, .R_, .U_]
     } else if  r7 == r6 && r6 == o5 && b5 == b7 && b7 == g6 { // G3
-        return [Op.G3p] + [Op.L_, Op.L_, Op.D_, Op.Y_, Op.L, Op.U_, Op.L, Op.U, Op.L_, Op.D, Op.Y, Op.L, Op.L, Op.F, Op.U_, Op.F_]
+        return [.G3p] + [.L_, .L_, .D_, .Y_, .L, .U_, .L, .U, .L_, .D, .Y, .L, .L, .F, .U_, .F_]
     } else if  r7 == r6 && r6 == o5 && b5 == b6 && b6 == b7 { // J1
-        return [Op.J1p] + [Op.L_, Op.U_, Op.L, Op.F, Op.L_, Op.U_, Op.L, Op.U, Op.L, Op.F_, Op.L_, Op.L_, Op.U, Op.L, Op.U]
+        return [.J1p] + [.L_, .U_, .L, .F, .L_, .U_, .L, .U, .L, .F_, .L_, .L_, .U, .L, .U]
     } else if  r5 == r6 && o5 == o7 && o7 == b6 && r7 != r6 { // G2
-        return [Op.G2p] + [Op.F_, Op.U_, Op.F, Op.R, Op.R, Op.D, Op.Y, Op.R_, Op.U, Op.R, Op.U_, Op.R, Op.D_, Op.Y_, Op.R, Op.R]
+        return [.G2p] + [.F_, .U_, .F, .R, .R, .D, .Y, .R_, .U, .R, .U_, .R, .D_, .Y_, .R, .R]
     } else if  r7 == r6 && o5 == o7 && o5 == g6 && r5 == b6 { // G4
-        return [Op.G4p] + [Op.F, Op.U, Op.F_, Op.L_, Op.L_, Op.D_, Op.Y_, Op.L, Op.U_, Op.L_, Op.U, Op.L_, Op.D, Op.Y, Op.L_, Op.L_]
+        return [.G4p] + [.F, .U, .F_, .L_, .L_, .D_, .Y_, .L, .U_, .L_, .U, .L_, .D, .Y, .L_, .L_]
     } else if  r7 == b5 && r5 == b6 && r6 == b7 && g6 == g5 { // F
-        return [Op.Fp] + [Op.R_, Op.U_, Op.F_, Op.R, Op.U, Op.R_, Op.U_, Op.R_, Op.F, Op.R, Op.R, Op.U_, Op.R_, Op.U_, Op.R, Op.U, Op.R_, Op.U, Op.R]
+        return [.Fp] + [.R_, .U_, .F_, .R, .U, .R_, .U_, .R_, .F, .R, .R, .U_, .R_, .U_, .R, .U, .R_, .U, .R]
     } else if  r6 == r7 && g5 == g6 && g5 == b7 && r7 == o5 { // V
-        return [Op.Vp] + [Op.R_, Op.U, Op.R_, Op.U_, Op.Y, Op.R_, Op.F_, Op.R, Op.R, Op.U_, Op.R_, Op.U, Op.R_, Op.F, Op.R, Op.F, Op.Y_]
+        return [.Vp] + [.R_, .U, .R_, .U_, .Y, .R_, .F_, .R, .R, .U_, .R_, .U, .R_, .F, .R, .F, .Y_]
     } else if  r7 == r6 && b7 == b6 && o7 == o6 && o6 == r5 && b6 != b5 && g5 != g6 { // N2
-        return [Op.N2p] + [Op.R_, Op.U, Op.R, Op.U_, Op.R_, Op.F_, Op.U_, Op.F, Op.R, Op.U, Op.R_, Op.F, Op.R_, Op.F_, Op.R, Op.U_, Op.R]
+        return [.N2p] + [.R_, .U, .R, .U_, .R_, .F_, .U_, .F, .R, .U, .R_, .F, .R_, .F_, .R, .U_, .R]
     } else if  r5 == r6 && b5 == b6 && o5 == o6 && o6 == r7 && b6 != b7 { // N1
-        return [Op.N1p] + [Op.L, Op.U_, Op.L_, Op.U, Op.L, Op.F, Op.U, Op.F_, Op.L_, Op.U_, Op.L, Op.F_, Op.L, Op.F, Op.L_, Op.U, Op.L_]
+        return [.N1p] + [.L, .U_, .L_, .U, .L, .F, .U, .F_, .L_, .U_, .L, .F_, .L, .F, .L_, .U, .L_]
     } else if  r5 == b6 && b6 == o7 && r7 == g6 && g6 == o5 { // E
-        return [Op.Ep] + [Op.R, Op.B_, Op.R_, Op.F, Op.R, Op.B, Op.R_, Op.F_, Op.R, Op.B, Op.R_, Op.F, Op.R, Op.B_, Op.R_, Op.F_]
+        return [.Ep] + [.R, .B_, .R_, .F, .R, .B, .R_, .F_, .R, .B, .R_, .F, .R, .B_, .R_, .F_]
     } else { return []
     }
 }
@@ -725,37 +717,36 @@ func prSeq(_ ops_arg: [Op]) -> String {
     var xs = ops_arg
     let x = xs.remove(at: 0)
 
-    if x == Op.FstLayer { return "First Layer -----\n " + prSeq(xs)
-    } else if x == Op.SndLayer { return "\nSecond Layer -----\n " + prSeq(xs)
-    } else if x == Op.PLL1p
-                || x == Op.PLL21p
-                || x == Op.PLL22p
-                || x == Op.PLL23p 
-                || x == Op.PLL24p
-                || x == Op.PLL25p 
-                || x == Op.PLL26p { return "\nPLL -----\n " + prSeq(xs)
-    } else if x == Op.A2p 
-                || x == Op.A1p 
-                || x == Op.Tp 
-                || x == Op.U1p 
-                || x == Op.U2p
-                || x == Op.Yp
-                || x == Op.R2p
-                || x == Op.Zp 
-                || x == Op.R1p
-                || x == Op.Hp 
-                || x == Op.G2p
-                || x == Op.J2p
-                || x == Op.G4p
-                || x == Op.J1p
-                || x == Op.G1p
-                || x == Op.G3p
-                || x == Op.Fp
-                || x == Op.Vp 
-                || x == Op.N2p
-                || x == Op.N1p
-                || x == Op.Ep { return "\nOLL -----\n " + prSeq(xs)
-//    } else { return op2s(x) + " " + prSeq(xs)
+    if x == .FstLayer { return "First Layer -----\n " + prSeq(xs)
+    } else if x == .SndLayer { return "\nSecond Layer -----\n " + prSeq(xs)
+    } else if x == .PLL1p
+                || x == .PLL21p
+                || x == .PLL22p
+                || x == .PLL23p 
+                || x == .PLL24p
+                || x == .PLL25p 
+                || x == .PLL26p { return "\nPLL -----\n " + prSeq(xs)
+    } else if x == .A2p 
+                || x == .A1p 
+                || x == .Tp 
+                || x == .U1p 
+                || x == .U2p
+                || x == .Yp
+                || x == .R2p
+                || x == .Zp 
+                || x == .R1p
+                || x == .Hp 
+                || x == .G2p
+                || x == .J2p
+                || x == .G4p
+                || x == .J1p
+                || x == .G1p
+                || x == .G3p
+                || x == .Fp
+                || x == .Vp 
+                || x == .N2p
+                || x == .N1p
+                || x == .Ep { return "\nOLL -----\n " + prSeq(xs)
     } else { return x.rawValue + " " + prSeq(xs)
     }
 }
@@ -764,19 +755,16 @@ func prSeq(_ ops_arg: [Op]) -> String {
 
 class Surface {
     var c1, c2, c3, c4, c5, c6, c7, c8: Color
-    
-    init(_ c1: Color, _ c2: Color, _ c3: Color, _ c4: Color,
-         _ c5: Color, _ c6: Color, _ c7: Color, _ c8: Color) {
-        self.c1 = c1
-        self.c2 = c2
-        self.c3 = c3
-        self.c4 = c4
-        self.c5 = c5
-        self.c6 = c6
-        self.c7 = c7
-        self.c8 = c8
+    init(_ c: [Color]) {
+        self.c1 = c[0]
+        self.c2 = c[1]
+        self.c3 = c[2]
+        self.c4 = c[3]
+        self.c5 = c[4]
+        self.c6 = c[5]
+        self.c7 = c[6]
+        self.c8 = c[7]
     }
-
     func getColor(_ num: Int) -> Color {
         switch num {
         case 1: return c1
@@ -797,7 +785,7 @@ class Surface {
     }
 
     func dupSurface() -> Surface {
-        return Surface(c1, c2, c3, c4, c5, c6, c7, c8)
+        return Surface([c1, c2, c3, c4, c5, c6, c7, c8])
     }
 }
 
@@ -856,8 +844,8 @@ class Cube {
     }
     
     func check() -> Bool {
-        return w.check(Color.White) && r.check(Color.Red) && b.check(Color.Blue) &&
-          o.check(Color.Orange) && g.check(Color.Green) && y.check(Color.Yellow)
+        return w.check(.White) && r.check(.Red) && b.check(.Blue) &&
+          o.check(.Orange) && g.check(.Green) && y.check(.Yellow)
     }
 
     func turn(_ op:Op) -> Cube {
@@ -865,7 +853,7 @@ class Cube {
         let (or, oy, oo, ow, ob, og) =
           (oldCube.r, oldCube.y, oldCube.o, oldCube.w, oldCube.b, oldCube.g)
         switch op {
-        case Op.R:
+        case .R:
             (w.c3, w.c4, w.c5) = (or.c3, or.c4, or.c5)
             (r.c3, r.c4, r.c5) = (oy.c3, oy.c4, oy.c5)
             (y.c3, y.c4, y.c5) = (oo.c7, oo.c8, oo.c1)
@@ -873,7 +861,7 @@ class Cube {
             (b.c1, b.c2, b.c3, b.c4) = (ob.c3, ob.c4, ob.c5, ob.c6)
             (b.c5, b.c6, b.c7, b.c8) = (ob.c7, ob.c8, ob.c1, ob.c2)
             return self
-        case Op.Y:
+        case .Y:
             (w.c1, w.c2, w.c3, w.c4) = (ow.c3, ow.c4, ow.c5, ow.c6)
             (w.c5, w.c6, w.c7, w.c8) = (ow.c7, ow.c8, ow.c1, ow.c2)
             (r.c1, r.c2, r.c3, r.c4) = (ob.c1, ob.c2, ob.c3, ob.c4)
@@ -887,7 +875,7 @@ class Cube {
             (y.c1, y.c2, y.c3, y.c4) = (oy.c7, oy.c8, oy.c1, oy.c2)
             (y.c5, y.c6, y.c7, y.c8) = (oy.c3, oy.c4, oy.c5, oy.c6)
             return self
-        case Op.Z:
+        case .Z:
             (w.c1, w.c2, w.c3, w.c4) = (og.c3, og.c4, og.c5, og.c6)
             (w.c5, w.c6, w.c7, w.c8) = (og.c7, og.c8, og.c1, og.c2)
             (r.c1, r.c2, r.c3, r.c4) = (or.c3, or.c4, or.c5, or.c6)
@@ -901,36 +889,36 @@ class Cube {
             (y.c1, y.c2, y.c3, y.c4) = (ob.c3, ob.c4, ob.c5, ob.c6)
             (y.c5, y.c6, y.c7, y.c8) = (ob.c7, ob.c8, ob.c1, ob.c2)
             return self
-        case Op.R_: return self.turn(Op.R).turn(Op.R).turn(Op.R)
-        case Op.R2: return self.turn(Op.R).turn(Op.R)
-        case Op.Y_: return self.turn(Op.Y).turn(Op.Y).turn(Op.Y)
-        case Op.Z2: return self.turn(Op.Z).turn(Op.Z)
-        case Op.Z_: return self.turn(Op.Z).turn(Op.Z).turn(Op.Z)
-        case Op.L: return self.applySeq([Op.Y, Op.Y, Op.R, Op.Y, Op.Y])
-        case Op.L2: return self.turn(Op.L).turn(Op.L)
-        case Op.L_: return self.applySeq([Op.Y, Op.Y, Op.R_, Op.Y, Op.Y])
-        case Op.U: return self.turn(Op.Z).turn(Op.R).turn(Op.Z_)
-        case Op.U2: return self.turn(Op.U).turn(Op.U)
-        case Op.U_: return self.turn(Op.Z).turn(Op.R_).turn(Op.Z_)
-        case Op.D: return self.turn(Op.Z_).turn(Op.R).turn(Op.Z)
-        case Op.D2: return self.turn(Op.D).turn(Op.D)
-        case Op.D_: return self.turn(Op.Z_).turn(Op.R_).turn(Op.Z)
-        case Op.F: return self.turn(Op.Y_).turn(Op.R).turn(Op.Y)
-        case Op.F2: return self.turn(Op.F).turn(Op.F)
-        case Op.F_: return self.turn(Op.Y_).turn(Op.R_).turn(Op.Y)
-        case Op.B: return self.turn(Op.Y).turn(Op.R).turn(Op.Y_)
-        case Op.B2: return self.turn(Op.B).turn(Op.B)
-        case Op.B_: return self.turn(Op.Y).turn(Op.R_).turn(Op.Y_)
-        case Op.Y2: return self.turn(Op.Y).turn(Op.Y)
-        case Op.Y_2: return self.turn(Op.Y_).turn(Op.Y_)
-        case Op.Z_2: return self.turn(Op.Z_).turn(Op.Z_)
-        case Op.U_2: return self.turn(Op.U_).turn(Op.U_)
-        case Op.B_2: return self.turn(Op.B_).turn(Op.B_)
-        case Op.D_2: return self.turn(Op.D_).turn(Op.D_)
-        case Op.L_2: return self.turn(Op.L_).turn(Op.L_)
-        case Op.R_2: return self.turn(Op.R_).turn(Op.R_)
-        case Op.F_2: return self.turn(Op.F_).turn(Op.F_)
-        case Op.M: return self.applySeq([Op.Z, Op.D_, Op.U, Op.Y_, Op.Z_])
+        case .R_: return self.turn(.R).turn(.R).turn(.R)
+        case .R2: return self.turn(.R).turn(.R)
+        case .Y_: return self.turn(.Y).turn(.Y).turn(.Y)
+        case .Z2: return self.turn(.Z).turn(.Z)
+        case .Z_: return self.turn(.Z).turn(.Z).turn(.Z)
+        case .L: return self.applySeq([.Y, .Y, .R, .Y, .Y])
+        case .L2: return self.turn(.L).turn(.L)
+        case .L_: return self.applySeq([.Y, .Y, .R_, .Y, .Y])
+        case .U: return self.turn(.Z).turn(.R).turn(.Z_)
+        case .U2: return self.turn(.U).turn(.U)
+        case .U_: return self.turn(.Z).turn(.R_).turn(.Z_)
+        case .D: return self.turn(.Z_).turn(.R).turn(.Z)
+        case .D2: return self.turn(.D).turn(.D)
+        case .D_: return self.turn(.Z_).turn(.R_).turn(.Z)
+        case .F: return self.turn(.Y_).turn(.R).turn(.Y)
+        case .F2: return self.turn(.F).turn(.F)
+        case .F_: return self.turn(.Y_).turn(.R_).turn(.Y)
+        case .B: return self.turn(.Y).turn(.R).turn(.Y_)
+        case .B2: return self.turn(.B).turn(.B)
+        case .B_: return self.turn(.Y).turn(.R_).turn(.Y_)
+        case .Y2: return self.turn(.Y).turn(.Y)
+        case .Y_2: return self.turn(.Y_).turn(.Y_)
+        case .Z_2: return self.turn(.Z_).turn(.Z_)
+        case .U_2: return self.turn(.U_).turn(.U_)
+        case .B_2: return self.turn(.B_).turn(.B_)
+        case .D_2: return self.turn(.D_).turn(.D_)
+        case .L_2: return self.turn(.L_).turn(.L_)
+        case .R_2: return self.turn(.R_).turn(.R_)
+        case .F_2: return self.turn(.F_).turn(.F_)
+        case .M: return self.applySeq([.Z, .D_, .U, .Y_, .Z_])
         default: break
         }
         return self
@@ -946,18 +934,18 @@ class Cube {
 }
 
 
-let goal = Cube(w: Surface(s2c("W"),s2c("W"),s2c("W"),s2c("W"),
-                           s2c("W"),s2c("W"),s2c("W"),s2c("W")),
-                r: Surface(s2c("R"),s2c("R"),s2c("R"),s2c("R"),
-                           s2c("R"),s2c("R"),s2c("R"),s2c("R")),
-                b: Surface(s2c("B"),s2c("B"),s2c("B"),s2c("B"),
-                           s2c("B"),s2c("B"),s2c("B"),s2c("B")),
-                o: Surface(s2c("O"),s2c("O"),s2c("O"),s2c("O"),
-                           s2c("O"),s2c("O"),s2c("O"),s2c("O")),
-                g: Surface(s2c("G"),s2c("G"),s2c("G"),s2c("G"),
-                           s2c("G"),s2c("G"),s2c("G"),s2c("G")),
-                y: Surface(s2c("Y"),s2c("Y"),s2c("Y"),s2c("Y"),
-                           s2c("Y"),s2c("Y"),s2c("Y"),s2c("Y")))
+let goal = Cube(w: Surface([.White, .White, .White, .White, 
+                            .White, .White, .White, .White]),
+                r: Surface([.Red, .Red, .Red, .Red, 
+                            .Red, .Red, .Red, .Red]),
+                b: Surface([.Blue, .Blue, .Blue, .Blue, 
+                            .Blue, .Blue, .Blue, .Blue]),
+                o: Surface([.Orange, .Orange, .Orange, .Orange, 
+                            .Orange, .Orange, .Orange, .Orange]),
+                g: Surface([.Green, .Green, .Green, .Green, 
+                            .Green, .Green, .Green, .Green]),
+                y: Surface([.Yellow, .Yellow, .Yellow, .Yellow, 
+                            .Yellow, .Yellow, .Yellow, .Yellow]))
 
 
 func solve(_ str: String) -> [Op] {

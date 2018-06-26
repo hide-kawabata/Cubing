@@ -370,34 +370,25 @@ revOp R = R'
 revOp R' = R
 revOp Y = Y'
 revOp Y' = Y
+revOp Z' = Z
+revOp Z = Z'
+revOp o = o
 
 reduceOp :: [Op] -> [Op]
-reduceOp [] = []
-reduceOp l@(x:[]) = l
-reduceOp (U:U':ys) = reduceOp ys
-reduceOp (L:L':ys) = reduceOp ys
-reduceOp (R:R':ys) = reduceOp ys
-reduceOp (B:B':ys) = reduceOp ys
-reduceOp (D:D':ys) = reduceOp ys
-reduceOp (F:F':ys) = reduceOp ys
-reduceOp (Y:Y':ys) = reduceOp ys
-reduceOp (Z:Z':ys) = reduceOp ys
-reduceOp (U':U:ys) = reduceOp ys
-reduceOp (L':L:ys) = reduceOp ys
-reduceOp (R':R:ys) = reduceOp ys
-reduceOp (B':B:ys) = reduceOp ys
-reduceOp (D':D:ys) = reduceOp ys
-reduceOp (F':F:ys) = reduceOp ys
-reduceOp (Y':Y:ys) = reduceOp ys
-reduceOp (Z':Z:ys) = reduceOp ys
-reduceOp (a:b:c:d:ys) 
+reduceOp [] = [] -- len: 0
+reduceOp l@(x:[]) = l -- len: 1
+reduceOp (a:b:c:d:ys) -- len: >=4
   | a == b && b == c && c == d = reduceOp ys
   | a == b && b == c = reduceOp ((revOp a):(d:ys))
+  | a == revOp(b) = reduceOp (c:d:ys)
   | otherwise = a:(reduceOp (b:c:d:ys))
-reduceOp (a:b:c:[]) 
+reduceOp (a:b:c:[]) -- le: 3
   | a == b && b == c = [revOp a]
+  | a == revOp(b) = [c]
   | otherwise = a:(reduceOp (b:c:[]))
-reduceOp l = l
+reduceOp l@(a:b:[]) -- len: 2
+  | a == revOp(b) = []
+  | otherwise = l
 
 iterOpt :: ([Op] -> [Op]) -> [Op] -> [Op]
 iterOpt f l
@@ -711,11 +702,12 @@ solve_check' str = do
   let outs = solve str
   let q_start = applySeq ins goal
   putStrLn "Scramble:"
-  putStrLn $ show ins
+  putStrLn $ str
+--  putStrLn $ show ins
   putStrLn "Scrambled:"
   pr $ q_start
   putStrLn "Solution:"
-  putStrLn $ show outs
+--  putStrLn $ show outs
   putStrLn $ prSeq outs
   putStrLn "Solved:"
   pr $ applySeq outs q_start
@@ -730,7 +722,7 @@ solve_check_pat' str = do
   putStrLn "Scrambled:"
   pr $ q_start
   putStrLn "Solution:"
-  putStrLn $ show outs
+--  putStrLn $ show outs
   putStrLn $ prSeq outs
   putStrLn "Solved:"
   pr $ applySeq outs q_start
