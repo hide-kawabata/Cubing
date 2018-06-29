@@ -213,6 +213,98 @@ func fromStringPos(_ str: String) -> Cube {
 }
 
 
+func readSurface(_ q: Cube) -> [Op]? {
+    func checkSurface(_ q: Cube, _ colors: (Color, Color, Color, Color, 
+                                            Color, Color, Color, Color)) -> Op {
+        switch colors {
+        case (q.r.c1, q.r.c2, q.y.c3, q.y.c4, q.y.c5, q.r.c6, q.r.c7, q.r.c8): return .R
+        case (q.w.c1, q.w.c2, q.r.c3, q.r.c4, q.r.c5, q.w.c6, q.w.c7, q.w.c8): return .R
+        case (q.o.c5, q.o.c6, q.w.c3, q.w.c4, q.w.c5, q.o.c2, q.o.c3, q.o.c4): return .R
+        case (q.y.c1, q.y.c2, q.o.c7, q.o.c8, q.o.c1, q.y.c6, q.y.c7, q.y.c8): return .R
+        case (q.r.c1, q.r.c2, q.w.c3, q.w.c4, q.w.c5, q.r.c6, q.r.c7, q.r.c8): return .R_
+        case (q.w.c1, q.w.c2, q.o.c7, q.o.c8, q.o.c1, q.w.c6, q.w.c7, q.w.c8): return .R_
+        case (q.o.c5, q.o.c6, q.y.c3, q.y.c4, q.y.c5, q.o.c2, q.o.c3, q.o.c4): return .R_
+        case (q.y.c1, q.y.c2, q.r.c3, q.r.c4, q.r.c5, q.y.c6, q.y.c7, q.y.c8): return .R_
+        default: return .N
+        }
+    }
+
+    func oneSurface(_ str: String) -> [Op] {
+        let cs = str.characters.map({s2c("\($0)")}) // length: 8
+        let colors = (cs[0], cs[1], cs[2], cs[3], cs[4], cs[5], cs[6], cs[7])
+        let op1 = checkSurface(q, colors) // R, R'
+        let op2 = checkSurface(q.dupCube().turn(.Y), colors) // B, B'
+        let op3 = checkSurface(q.dupCube().turn(.Y).turn(.Y), colors) // L, L'
+        let op4 = checkSurface(q.dupCube().turn(.Y_), colors) // F, F'
+        let op5 = checkSurface(q.dupCube().turn(.Z), colors) // U, U'
+        let op6 = checkSurface(q.dupCube().turn(.Z_), colors) // D, D'
+        return [op1, op2, op3, op4, op5, op6]
+    }
+
+    func checkAmbiguity(_ l: [Op]) -> Bool { // ambiguous=T
+        print(l)
+        if l.map({(x:Op) -> Int in if x != .N { return 1 } else { return 0 }})
+             .reduce(0, {$0 + $1})
+             > 1 {
+            print("Ambiguous")
+            return true
+        } else {
+            print("Not ambiguous")
+            return false
+        }
+    }
+
+    func mergeOps(_ l1: [Op], _ l2: [Op], _ acc: [Op]) -> [Op] {
+        if l1.count == 0 { return acc }
+        var l1t = l1
+        var l2t = l2
+        let l1h = l1t.remove(at: 0)
+        let l2h = l2t.remove(at: 0)
+        if l1h == .N || l2h == .N {
+            return mergeOps(l1t, l2t, acc + [.N]) 
+        } else {
+            return mergeOps(l1t, l2t, acc + [l1h])
+        }
+    }
+
+    var pats:[Op] = [.R, .R, .R, .R, .R, .R] // initial dummy value
+    var ambiguous = true
+    var i = 1
+    while ambiguous && i < 3 {
+        print("trial no." + String(i))
+        i = i + 1
+        let sur = readLine(strippingNewline:true)
+        if let sur2 = sur {
+            let ops = oneSurface(sur2)
+            pats = mergeOps(pats, ops, [])
+            ambiguous = checkAmbiguity(pats)
+        } else {
+            continue
+        }
+    }
+
+    if i >= 3 {
+        print("Please input whole configuration")
+        return nil
+    } else {
+        if pats[0] != .N {
+            return [pats[0]]
+        } else if pats[1] != .N {
+            return [.Y, pats[1], .Y_]
+        } else if pats[2] != .N {
+            return [.Y, .Y, pats[2], .Y_, .Y_]
+        } else if pats[3] != .N {
+            return [.Y_, pats[3], .Y]
+        } else if pats[4] != .N {
+            return [.Z, pats[1], .Z_]
+        } else if pats[5] != .N {
+            return [.Z_, pats[1], .Z]
+        } else {
+            return nil
+        }
+    }
+}
+
 func revOp(_ x: Op) -> Op {
     switch x {
     case .U: return .U_
@@ -982,16 +1074,45 @@ func solve_check_pat(_ str: String) {
 
 /**************************************************************/
 
+
 print("Input a scramble:")
 let ins = readLine(strippingNewline:true)
 if let ins2 = ins {
     solve_check(ins2)
 }
 
+
 /*
 print("Input a scrambled pattern:")
 let pat = readLine(strippingNewline:true)
 if let pat2 = pat {
     solve_check_pat(pat2)
+}
+*/
+
+/*
+var pats:[String] = []
+var pat:String? = nil
+var solved = false
+print("Input a scrambled pattern:")
+pat = readLine(strippingNewline:true)
+if let pat2 = pat {
+    let q = fromStringPos(pat2)
+    print(q.pr())
+    let outs = solveQ(q)
+    print(prSeq(outs))
+    repeat {
+        pats = []
+        print("Input a surface:")
+        let ops = readSurface(q)
+        if let ops2 = ops {
+            q.applySeq(ops2)
+            print(q.pr())
+            let outs = solveQ(q)
+            print(prSeq(outs))
+        } else {
+            break
+        }
+    } while !solved
 }
 */
