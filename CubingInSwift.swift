@@ -270,7 +270,7 @@ func readSurface(_ q: Cube) -> [Op]? {
     var pats:[Op] = [.R, .R, .R, .R, .R, .R] // initial dummy value
     var ambiguous = true
     var i = 1
-    while ambiguous && i < 3 {
+    while ambiguous && i <= 3 {
         print("trial no." + String(i))
         i = i + 1
         let sur = readLine(strippingNewline:true)
@@ -296,9 +296,9 @@ func readSurface(_ q: Cube) -> [Op]? {
         } else if pats[3] != .N {
             return [.Y_, pats[3], .Y]
         } else if pats[4] != .N {
-            return [.Z, pats[1], .Z_]
+            return [.Z, pats[4], .Z_]
         } else if pats[5] != .N {
-            return [.Z_, pats[1], .Z]
+            return [.Z_, pats[5], .Z]
         } else {
             return nil
         }
@@ -1106,7 +1106,7 @@ if let pat2 = pat {
         print("Input a surface:")
         let ops = readSurface(q)
         if let ops2 = ops {
-            q.applySeq(ops2)
+            _ = q.applySeq(ops2)
             print(q.pr())
             let outs = solveQ(q)
             print(prSeq(outs))
