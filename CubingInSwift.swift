@@ -59,93 +59,15 @@ enum CubingError : Error {
 
 // helper functions
 func s2c(_ c: String) -> Color {
-    switch c {
-    case "W": return .White
-    case "R": return .Red
-    case "B": return .Blue
-    case "O": return .Orange
-    case "G": return .Green
-    case "Y": return .Yellow
-    default: return .White // error s2c
-    }
+    return Color(rawValue: c)!
 }
-
-
-func s2op(_ s: String) -> Op {
-    switch s {
-    case "R": return .R
-    case "R'": return .R_
-    case "U": return .U
-    case "U'": return .U_
-    case "B": return .B
-    case "B'": return .B_
-    case "L": return .L
-    case "L'": return .L_
-    case "F": return .F
-    case "F'": return .F_
-    case "D": return .D
-    case "D'": return .D_
-    case "Y": return .Y
-    case "Y'": return .Y_
-    case "Z": return .Z
-    case "Z'": return .Z_
-    case "N": return .N
-    case "M": return .M
-    case "M'": return .M_
-    case "Y2": return .Y2
-    case "Y'2": return .Y_2
-    case "Z2": return .Z2
-    case "Z'2": return .Z_2
-    case "R2": return .R2
-    case "R'2": return .R_2
-    case "U2": return .U2
-    case "U'2": return .U_2
-    case "B2": return .B2
-    case "B'2": return .B_2
-    case "L2": return .L2
-    case "L'2": return .L_2
-    case "F2": return .F2
-    case "F'2": return .F_2
-    case "D2": return .D2
-    case "D'2": return .D_2
-//
-    case "FstLayer": return .FstLayer
-    case "SndLayer": return .SndLayer
-    case "PLL1p": return .PLL1p
-    case "PLL21p": return .PLL21p
-    case "PLL22p": return .PLL22p
-    case "PLL23p": return .PLL23p
-    case "PLL24p": return .PLL24p
-    case "PLL25p": return .PLL25p
-    case "PLL26p": return .PLL26p
-    case "A2p": return .A2p
-    case "A1p": return .A1p
-    case "Tp": return .Tp
-    case "U1p": return .U1p
-    case "U2p": return .U2p
-    case "Yp": return .Yp
-    case "R2p": return .R2p
-    case "Zp": return .Zp
-    case "R1p": return .R1p
-    case "Hp": return .Hp
-    case "G2p": return .G2p
-    case "J2p": return .J2p
-    case "G4p": return .G4p
-    case "J1p": return .J1p
-    case "G1p": return .G1p
-    case "G3p": return .G3p
-    case "Fp": return .Fp
-    case "Vp": return .Vp
-    case "N2p": return .N2p
-    case "N1p": return .N1p
-    case "Ep": return .Ep
-    default: return .N // error s2op
-    }
-}
-
 
 // simple parser
 func fromString(_ str: String) -> [Op] {
+    func s2op(_ s: String) -> Op {
+        return Op(rawValue: s)!
+    }
+
     func iter(_ xxs_arg: [String], _ acc_arg: [Op]) -> [Op] {
         var xxs = xxs_arg
         var acc = acc_arg
