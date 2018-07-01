@@ -41,8 +41,10 @@ enum Color : String {
 
 enum Op : String {
     case R; case R_ = "R'"; case U; case U_ = "U'"; case B; case B_ = "B'"; case L; case L_ = "L'"
-    case F; case F_ = "F'"; case D; case D_ = "D'"; case Y; case Y_ = "Y'"; case Z; case Z_ = "Z'"
-    case N; case M; case M_ = "M'"; case Y2; case Y_2 = "Y'2"; case Z2; case Z_2 = "Z'2"
+    case F; case F_ = "F'"; case D; case D_ = "D'"
+    case Y; case Y_ = "Y'"; case Z; case Z_ = "Z'"; case X; case X_ = "X'"
+    case Y2; case Y_2 = "Y'2"; case Z2; case Z_2 = "Z'2"; case X2; case X_2 = "X'2"
+    case N; case M; case M_ = "M'"
     case R2; case R_2 = "R'2"; case U2; case U_2 = "U'2"; case B2; case B_2 = "B'2"
     case L2; case L_2 = "L'2"; case F2; case F_2 = "F'2"; case D2; case D_2 = "D'2"
 //
@@ -51,10 +53,13 @@ enum Op : String {
     case A2p; case A1p; case Tp; case U1p; case U2p; case Yp; case R2p
     case Zp; case R1p; case Hp; case G2p; case J2p; case G4p; case J1p 
     case G1p; case G3p; case Fp; case Vp; case N2p; case N1p; case Ep
+//
+    case Nil
 }
 
 enum CubingError : Error {
     case ParseError
+    case AmbiguousInfo
 }
 
 // helper functions
@@ -136,21 +141,99 @@ func fromStringPos(_ str: String) -> Cube {
 
 
 func readSurface(_ q: Cube) -> [Op]? {
+
     func checkSurface(_ q: Cube, _ colors: (Color, Color, Color, Color, 
                                             Color, Color, Color, Color)) -> Op {
-        switch colors {
-        case (q.r.c1, q.r.c2, q.y.c3, q.y.c4, q.y.c5, q.r.c6, q.r.c7, q.r.c8): return .R
-        case (q.w.c1, q.w.c2, q.r.c3, q.r.c4, q.r.c5, q.w.c6, q.w.c7, q.w.c8): return .R
-        case (q.o.c5, q.o.c6, q.w.c3, q.w.c4, q.w.c5, q.o.c2, q.o.c3, q.o.c4): return .R
-        case (q.y.c1, q.y.c2, q.o.c7, q.o.c8, q.o.c1, q.y.c6, q.y.c7, q.y.c8): return .R
-        case (q.r.c1, q.r.c2, q.w.c3, q.w.c4, q.w.c5, q.r.c6, q.r.c7, q.r.c8): return .R_
-        case (q.w.c1, q.w.c2, q.o.c7, q.o.c8, q.o.c1, q.w.c6, q.w.c7, q.w.c8): return .R_
-        case (q.o.c5, q.o.c6, q.y.c3, q.y.c4, q.y.c5, q.o.c2, q.o.c3, q.o.c4): return .R_
-        case (q.y.c1, q.y.c2, q.r.c3, q.r.c4, q.r.c5, q.y.c6, q.y.c7, q.y.c8): return .R_
-        default: return .N
+
+        func rotc8(_ i: Int, _ colors: (Color, Color, Color, Color,
+                                        Color, Color, Color, Color)) ->
+          (Color, Color, Color, Color, Color, Color, Color, Color) {
+            let (c1, c2, c3, c4, c5, c6, c7, c8) = colors
+            switch i {
+            case 0: return (c1, c2, c3, c4, c5, c6, c7, c8)
+            case 1: return (c3, c4, c5, c6, c7, c8, c1, c2)
+            case 2: return (c5, c6, c7, c8, c1, c2, c3, c4)
+            case 3: return (c7, c8, c1, c2, c3, c4, c5, c6)
+            default: return (c1, c2, c3, c4, c5, c6, c7, c8) // error
+            }
+        }
+
+        func eq8(_ cs1: (Color, Color, Color, Color, Color, Color, Color, Color),
+                 _ cs2: (Color, Color, Color, Color, Color, Color, Color, Color)) -> Bool {
+            let (cs11, cs12, cs13, cs14, cs15, cs16, cs17, cs18) = cs1
+            let (cs21, cs22, cs23, cs24, cs25, cs26, cs27, cs28) = cs2
+            return cs11 == cs21 && cs12 == cs22 && cs13 == cs23 && cs14 == cs24
+              && cs15 == cs25 && cs16 == cs26 && cs17 == cs27 && cs18 == cs28
+        }
+
+        let (r, b, o, g, w, y) = (q.r, q.b, q.o, q.g, q.w, q.y)
+        let (r1, r2, r3, r4, r5, r6, r7, r8) = (r.c1, r.c2, r.c3, r.c4, r.c5, r.c6, r.c7, r.c8)
+        let (b1, b2, b3, b4, b5, b6, b7, b8) = (b.c1, b.c2, b.c3, b.c4, b.c5, b.c6, b.c7, b.c8)
+        let (o1, o2, o3, o4, o5, o6, o7, o8) = (o.c1, o.c2, o.c3, o.c4, o.c5, o.c6, o.c7, o.c8)
+        let (g1, g2, g3, g4, g5, g6, g7, g8) = (g.c1, g.c2, g.c3, g.c4, g.c5, g.c6, g.c7, g.c8)
+        let (w1, w2, w3, w4, w5, w6, w7, w8) = (w.c1, w.c2, w.c3, w.c4, w.c5, w.c6, w.c7, w.c8)
+        let (y1, y2, y3, y4, y5, y6, y7, y8) = (y.c1, y.c2, y.c3, y.c4, y.c5, y.c6, y.c7, y.c8)
+        
+        let colors1 = rotc8(1, colors)
+        let colors2 = rotc8(2, colors)
+        let colors3 = rotc8(3, colors)
+
+        if eq8(colors, (r1, r2, y3, y4, y5, r6, r7, r8))
+             || eq8(colors1, (r1, r2, y3, y4, y5, r6, r7, r8))
+             || eq8(colors2, (r1, r2, y3, y4, y5, r6, r7, r8))
+             || eq8(colors3, (r1, r2, y3, y4, y5, r6, r7, r8))
+             || eq8(colors, (w1, w2, r3, r4, r5, w6, w7, w8))
+             || eq8(colors1, (w1, w2, r3, r4, r5, w6, w7, w8))
+             || eq8(colors2, (w1, w2, r3, r4, r5, w6, w7, w8))
+             || eq8(colors3, (w1, w2, r3, r4, r5, w6, w7, w8))
+             || eq8(colors, (o5, o6, w3, w4, w5, o2, o3, o4))
+             || eq8(colors1, (o5, o6, w3, w4, w5, o2, o3, o4))
+             || eq8(colors2, (o5, o6, w3, w4, w5, o2, o3, o4))
+             || eq8(colors3, (o5, o6, w3, w4, w5, o2, o3, o4))
+             || eq8(colors, (y1, y2, o7, o8, o1, y6, y7, y8))
+             || eq8(colors1, (y1, y2, o7, o8, o1, y6, y7, y8))
+             || eq8(colors2, (y1, y2, o7, o8, o1, y6, y7, y8))
+             || eq8(colors3, (y1, y2, o7, o8, o1, y6, y7, y8)) {
+            return .R
+        } else if eq8(colors, (r1, r2, w3, w4, w5, r6, r7, r8))
+                    || eq8(colors1, (r1, r2, w3, w4, w5, r6, r7, r8))
+                    || eq8(colors2, (r1, r2, w3, w4, w5, r6, r7, r8))
+                    || eq8(colors3, (r1, r2, w3, w4, w5, r6, r7, r8))
+                    || eq8(colors, (w1, w2, o7, o8, o1, w6, w7, w8))
+                    || eq8(colors1, (w1, w2, o7, o8, o1, w6, w7, w8))
+                    || eq8(colors2, (w1, w2, o7, o8, o1, w6, w7, w8))
+                    || eq8(colors3, (w1, w2, o7, o8, o1, w6, w7, w8))
+                    || eq8(colors, (o5, o6, y3, y4, y5, o2, o3, o4))
+                    || eq8(colors1, (o5, o6, y3, y4, y5, o2, o3, o4))
+                    || eq8(colors2, (o5, o6, y3, y4, y5, o2, o3, o4))
+                    || eq8(colors3, (o5, o6, y3, y4, y5, o2, o3, o4))
+                    || eq8(colors, (y1, y2, r3, r4, r5, y6, y7, y8))
+                    || eq8(colors1, (y1, y2, r3, r4, r5, y6, y7, y8))
+                    || eq8(colors2, (y1, y2, r3, r4, r5, y6, y7, y8))
+                    || eq8(colors3, (y1, y2, r3, r4, r5, y6, y7, y8)) {
+            return .R_
+        } else if eq8(colors, (b3, b4, b5, b6, b7, b8, b1, b2))
+                    || eq8(colors1, (b3, b4, b5, b6, b7, b8, b1, b2))
+                    || eq8(colors2, (b3, b4, b5, b6, b7, b8, b1, b2))
+                    || eq8(colors3, (b3, b4, b5, b6, b7, b8, b1, b2))
+                    || eq8(colors, (g1, g2, g3, g4, g5, g6, g7, g8))
+                    || eq8(colors1, (g1, g2, g3, g4, g5, g6, g7, g8))
+                    || eq8(colors2, (g1, g2, g3, g4, g5, g6, g7, g8))
+                    || eq8(colors3, (g1, g2, g3, g4, g5, g6, g7, g8))
+                    || eq8(colors, (b7, b8, b1, b2, b3, b4, b5, b6))
+                    || eq8(colors1, (b7, b8, b1, b2, b3, b4, b5, b6))
+                    || eq8(colors2, (b7, b8, b1, b2, b3, b4, b5, b6))
+                    || eq8(colors3, (b7, b8, b1, b2, b3, b4, b5, b6)) {
+            return .N
+        } else {
+            return .Nil
         }
     }
 
+    // e.g. no move detected -> [.N, .Nil, .N, .Nil, .Nil, .Nil] : Ns and Nils : Ambiguous
+    //      no match -> [.Nil, .Nil, .Nil, .Nil, .Nil, .Nil] : all Nils : Error
+    //      match -> [.R, .Nil, .Nil, .Nil, .Nil, .Nil] : one non-Nil and Nils : OK
+    //      ambiguous -> [.R, .Nil, .L_, .Nil, .Nil, .Nil] : two or more non-Nils : Ambiguous
     func oneSurface(_ str: String) -> [Op] {
         let cs = str.characters.map({s2c("\($0)")}) // length: 8
         let colors = (cs[0], cs[1], cs[2], cs[3], cs[4], cs[5], cs[6], cs[7])
@@ -163,16 +246,16 @@ func readSurface(_ q: Cube) -> [Op]? {
         return [op1, op2, op3, op4, op5, op6]
     }
 
-    func checkAmbiguity(_ l: [Op]) -> Bool { // ambiguous=T
-        print(l)
-        if l.map({(x:Op) -> Int in if x != .N { return 1 } else { return 0 }})
-             .reduce(0, {$0 + $1})
-             > 1 {
-            print("Ambiguous")
-            return true
-        } else {
-            print("Not ambiguous")
-            return false
+    func checkAmbiguity(_ l: [Op]) throws -> Bool { // ambiguous=T
+        let c = l.map({(x:Op) -> Int in if x == .Nil { return 0 } else { return 1 }})
+          .reduce(0, {$0 + $1})
+        if c > 1 {
+            return true // ambiguous
+        } else if c == 1 {
+            return false // not ambiguous
+        } else { // c == 0
+            print("Incorrect info")
+            throw CubingError.AmbiguousInfo
         }
     }
 
@@ -182,14 +265,14 @@ func readSurface(_ q: Cube) -> [Op]? {
         var l2t = l2
         let l1h = l1t.remove(at: 0)
         let l2h = l2t.remove(at: 0)
-        if l1h == .N || l2h == .N {
-            return mergeOps(l1t, l2t, acc + [.N]) 
+        if l1h == .Nil || l2h == .Nil {
+            return mergeOps(l1t, l2t, acc + [.Nil]) 
         } else {
-            return mergeOps(l1t, l2t, acc + [l1h])
+            return mergeOps(l1t, l2t, acc + [l2h])
         }
     }
 
-    var pats:[Op] = [.R, .R, .R, .R, .R, .R] // initial dummy value
+    var pats:[Op] = [.N, .N, .N, .N, .N, .N] // initial dummy value
     var ambiguous = true
     var i = 1
     while ambiguous && i <= 3 {
@@ -199,27 +282,33 @@ func readSurface(_ q: Cube) -> [Op]? {
         if let sur2 = sur {
             let ops = oneSurface(sur2)
             pats = mergeOps(pats, ops, [])
-            ambiguous = checkAmbiguity(pats)
+            do {
+                ambiguous = try checkAmbiguity(pats)
+            } catch { // CubingError.AmbuguousInfo
+                break // quit solving
+            }
         } else {
             continue
         }
     }
 
-    if i >= 3 {
-        print("Please input whole configuration")
+    if i >= 4 {
+        print("Please input more info")
+        return nil
+    } else if ambiguous == true { // error
         return nil
     } else {
-        if pats[0] != .N {
+        if pats[0] != .Nil {
             return [pats[0]]
-        } else if pats[1] != .N {
+        } else if pats[1] != .Nil {
             return [.Y, pats[1], .Y_]
-        } else if pats[2] != .N {
+        } else if pats[2] != .Nil {
             return [.Y, .Y, pats[2], .Y_, .Y_]
-        } else if pats[3] != .N {
+        } else if pats[3] != .Nil {
             return [.Y_, pats[3], .Y]
-        } else if pats[4] != .N {
+        } else if pats[4] != .Nil {
             return [.Z, pats[4], .Z_]
-        } else if pats[5] != .N {
+        } else if pats[5] != .Nil {
             return [.Z_, pats[5], .Z]
         } else {
             return nil
@@ -903,6 +992,9 @@ class Cube {
             (y.c1, y.c2, y.c3, y.c4) = (ob.c3, ob.c4, ob.c5, ob.c6)
             (y.c5, y.c6, y.c7, y.c8) = (ob.c7, ob.c8, ob.c1, ob.c2)
             return self
+        case .X: return self.turn(.Z).turn(.Y_).turn(.Z_)
+        case .X2: return self.turn(.X).turn(.X)
+        case .X_: return self.turn(.X).turn(.X).turn(.X)
         case .R_: return self.turn(.R).turn(.R).turn(.R)
         case .R2: return self.turn(.R).turn(.R)
         case .Y_: return self.turn(.Y).turn(.Y).turn(.Y)
