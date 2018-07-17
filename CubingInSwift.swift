@@ -67,6 +67,37 @@ func s2c(_ c: String) -> Color {
     return Color(rawValue: c)!
 }
 
+func effective_op(_ op: Op) -> Bool {
+    switch op {
+    case .R: return true
+    case .R_: return true
+    case .U: return true
+    case .U_: return true
+    case .B: return true
+    case .B_: return true
+    case .L: return true
+    case .L_: return true
+    case .F: return true
+    case .F_: return true
+    case .D: return true
+    case .D_: return true
+    case .M: return true
+    case .R2: return true
+    case .R_2: return true
+    case .U2: return true
+    case .U_2: return true
+    case .B2: return true
+    case .B_2: return true
+    case .L2: return true
+    case .L_2: return true
+    case .F2: return true
+    case .F_2: return true
+    case .D2: return true
+    case .D_2: return true
+    default: return false
+    }
+}
+
 // simple parser
 func fromString(_ str: String) -> [Op] {
     func s2op(_ s: String) -> Op {
@@ -212,6 +243,23 @@ func readSurface(_ q: Cube) -> [Op]? {
                     || eq8(colors2, (y1, y2, r3, r4, r5, y6, y7, y8))
                     || eq8(colors3, (y1, y2, r3, r4, r5, y6, y7, y8)) {
             return .R_
+        } else if eq8(colors, (r1, r2, o7, o8, o1, r6, r7, r8))
+                    || eq8(colors1, (r1, r2, o7, o8, o1, r6, r7, r8))
+                    || eq8(colors2, (r1, r2, o7, o8, o1, r6, r7, r8))
+                    || eq8(colors3, (r1, r2, o7, o8, o1, r6, r7, r8))
+                    || eq8(colors, (w1, w2, y3, y4, y5, w6, w7, w8))
+                    || eq8(colors1, (w1, w2, y3, y4, y5, w6, w7, w8))
+                    || eq8(colors2, (w1, w2, y3, y4, y5, w6, w7, w8))
+                    || eq8(colors3, (w1, w2, y3, y4, y5, w6, w7, w8))
+                    || eq8(colors, (o5, o6, r3, r4, r5, o2, o3, o4))
+                    || eq8(colors1, (o5, o6, r3, r4, r5, o2, o3, o4))
+                    || eq8(colors2, (o5, o6, r3, r4, r5, o2, o3, o4))
+                    || eq8(colors3, (o5, o6, r3, r4, r5, o2, o3, o4))
+                    || eq8(colors, (y1, y2, w3, w4, w5, y6, y7, y8))
+                    || eq8(colors1, (y1, y2, w3, w4, w5, y6, y7, y8))
+                    || eq8(colors2, (y1, y2, w3, w4, w5, y6, y7, y8))
+                    || eq8(colors3, (y1, y2, w3, w4, w5, y6, y7, y8)) {
+            return .R2
         } else if eq8(colors, (b3, b4, b5, b6, b7, b8, b1, b2))
                     || eq8(colors1, (b3, b4, b5, b6, b7, b8, b1, b2))
                     || eq8(colors2, (b3, b4, b5, b6, b7, b8, b1, b2))
@@ -237,12 +285,12 @@ func readSurface(_ q: Cube) -> [Op]? {
     func oneSurface(_ str: String) -> [Op] {
         let cs = str.characters.map({s2c("\($0)")}) // length: 8
         let colors = (cs[0], cs[1], cs[2], cs[3], cs[4], cs[5], cs[6], cs[7])
-        let op1 = checkSurface(q, colors) // R, R'
-        let op2 = checkSurface(q.dupCube().turn(.Y), colors) // B, B'
-        let op3 = checkSurface(q.dupCube().turn(.Y).turn(.Y), colors) // L, L'
-        let op4 = checkSurface(q.dupCube().turn(.Y_), colors) // F, F'
-        let op5 = checkSurface(q.dupCube().turn(.Z), colors) // U, U'
-        let op6 = checkSurface(q.dupCube().turn(.Z_), colors) // D, D'
+        let op1 = checkSurface(q, colors) // R, R', R2
+        let op2 = checkSurface(q.dupCube().turn(.Y), colors) // B, B', B2
+        let op3 = checkSurface(q.dupCube().turn(.Y).turn(.Y), colors) // L, L', L2
+        let op4 = checkSurface(q.dupCube().turn(.Y_), colors) // F, F', F2
+        let op5 = checkSurface(q.dupCube().turn(.Z), colors) // U, U', U2
+        let op6 = checkSurface(q.dupCube().turn(.Z_), colors) // D, D', D2
         return [op1, op2, op3, op4, op5, op6]
     }
 
@@ -281,7 +329,9 @@ func readSurface(_ q: Cube) -> [Op]? {
         let sur = readLine(strippingNewline:true)
         if let sur2 = sur {
             let ops = oneSurface(sur2)
+//            print(ops)
             pats = mergeOps(pats, ops, [])
+//            print(pats)
             do {
                 ambiguous = try checkAmbiguity(pats)
             } catch { // CubingError.AmbuguousInfo
@@ -335,6 +385,16 @@ func revOp(_ x: Op) -> Op {
     case .Y_: return .Y
     case .Z_: return .Z
     default: return x
+    }
+}
+
+func revOps(_ ops_arg: [Op]) -> [Op] {
+    var ops = ops_arg
+    if ops.count == 0 { 
+        return []
+    } else {
+        let op = ops.remove(at: 0)
+        return revOps(ops) + [revOp(op)]
     }
 }
 
@@ -890,6 +950,11 @@ class Surface {
     func dupSurface() -> Surface {
         return Surface([c1, c2, c3, c4, c5, c6, c7, c8])
     }
+
+    func eq(_ s: Surface) -> Bool {
+        return s.c1 == c1 && s.c2 == c2 && s.c3 == c3 &&
+          s.c4 == c4 && s.c5 == c5 && s.c6 == c6
+    }
 }
 
 class Cube {
@@ -1037,6 +1102,11 @@ class Cube {
     func applySeq(_ l:[Op]) -> Cube {
         return l.reduce(self, turn2)
     }
+
+    func eq(_ q: Cube) -> Bool {
+        return w.eq(q.w) && r.eq(q.r) && b.eq(q.b) &&
+          o.eq(q.o) && g.eq(q.g) && y.eq(q.y)
+    }
 }
 
 
@@ -1086,6 +1156,30 @@ func solve_check_pat(_ str: String) {
     print(q_start.dupCube().applySeq(outs).pr())
 }
 
+func first_effective_op(_ ops_arg: [Op]) -> ([Op], [Op]) {
+    var ops = ops_arg
+    var pre_ops: [Op] = []
+    var ret_ops: [Op] = []
+    var remaining: [Op] = []
+    while ops.count != 0 {
+        let op = ops.remove(at: 0)
+        if op == .Y || op == .Y_ || op == .Y2 ||
+             op == .Z || op == .Z_ || op == .Z2 {
+            pre_ops = pre_ops + [op]
+        } else if effective_op(op) {
+            ret_ops = pre_ops + [op] + revOps(pre_ops)
+            break
+        } else {
+            remaining = remaining + [op]
+        }
+    }
+//    print("ARG:" + prSeq(ops_arg))
+//    print("[1]:" + prSeq(ret_ops))
+//    print("[2]:" + prSeq(optimizeOp(remaining + pre_ops + ops)))
+    return (ret_ops, optimizeOp(remaining + pre_ops + ops))
+}
+
+
 /**************************************************************/
 
 
@@ -1113,16 +1207,30 @@ pat = readLine(strippingNewline:true)
 if let pat2 = pat {
     let q = fromStringPos(pat2)
     print(q.pr())
-    let outs = solveQ(q)
+    var outs = solveQ(q)
     print(prSeq(outs))
     repeat {
         pats = []
         print("Input a surface:")
         let ops = readSurface(q)
         if let ops2 = ops {
-            _ = q.applySeq(ops2)
+            var q2 = q.dupCube()
+            _ = q.applySeq(ops2) // actual state
             print(q.pr())
-            let outs = solveQ(q)
+            if q.check() {
+                print("Finished!")
+                break
+            }
+            let (fst, rst): ([Op], [Op]) = first_effective_op(outs)
+            _ = q2.applySeq(fst) // followed state
+//            print(q2.pr())
+            if q2.eq(q) { // followed
+                print("Followed:")
+                outs = rst // continuation
+            } else {
+                print("Not followed:")
+                outs = solveQ(q) // new solution
+            }
             print(prSeq(outs))
         } else {
             break
