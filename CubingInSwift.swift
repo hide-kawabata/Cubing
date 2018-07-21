@@ -389,41 +389,47 @@ func revOp(_ x: Op) -> Op {
 }
 
 func revOps(_ ops_arg: [Op]) -> [Op] {
-    var ops = ops_arg
-    if ops.count == 0 { 
-        return []
-    } else {
-        let op = ops.remove(at: 0)
-        return revOps(ops) + [revOp(op)]
+    func revOps_(_ acc_arg: [Op], _ ops_arg: [Op]) -> [Op] {
+        var ops = ops_arg
+        if ops.count == 0 { 
+            return acc_arg
+        } else {
+            let op = ops.remove(at: 0)
+            return revOps_([revOp(op)] + acc_arg, ops)
+        }
     }
+    return revOps_([], ops_arg)
 }
 
 func expandOp(_ xxs_arg: [Op]) -> [Op] {
-    var xxs = xxs_arg
-    if xxs.count == 0 { // length: 0
-        return []
+    func expandOp_(_ acc_arg: [Op], _ xxs_arg: [Op]) -> [Op] {
+        var xxs = xxs_arg
+        if xxs.count == 0 { // length: 0
+            return acc_arg
+        }
+        let x = xxs.remove(at: 0) // length: >=1
+        let xs = xxs
+        switch x {
+        case .R2: return expandOp_(acc_arg + [.R, .R], xs)
+        case .L2: return expandOp_(acc_arg + [.L, .L], xs)
+        case .D2: return expandOp_(acc_arg + [.D, .D], xs)
+        case .U2: return expandOp_(acc_arg + [.U, .U], xs)
+        case .B2: return expandOp_(acc_arg + [.B, .B], xs)
+        case .F2: return expandOp_(acc_arg + [.F, .F], xs)
+        case .Y2: return expandOp_(acc_arg + [.Y, .Y], xs)
+        case .Z2: return expandOp_(acc_arg + [.Z, .Z], xs)
+        case .R_2: return expandOp_(acc_arg + [.R, .R], xs)
+        case .L_2: return expandOp_(acc_arg + [.L, .L], xs)
+        case .D_2: return expandOp_(acc_arg + [.D, .D], xs)
+        case .U_2: return expandOp_(acc_arg + [.U, .U], xs)
+        case .B_2: return expandOp_(acc_arg + [.B, .B], xs)
+        case .F_2: return expandOp_(acc_arg + [.F, .F], xs)
+        case .Y_2: return expandOp_(acc_arg + [.Y, .Y], xs)
+        case .Z_2: return expandOp_(acc_arg + [.Z, .Z], xs)
+        default: return expandOp_(acc_arg + [x], xs)
+        }
     }
-    let x = xxs.remove(at: 0) // length: >=1
-    let xs = xxs
-    switch x {
-    case .R2: return [.R, .R] + expandOp(xs)
-    case .L2: return [.L, .L] + expandOp(xs)
-    case .D2: return [.D, .D] + expandOp(xs)
-    case .U2: return [.U, .U] + expandOp(xs)
-    case .B2: return [.B, .B] + expandOp(xs)
-    case .F2: return [.F, .F] + expandOp(xs)
-    case .Y2: return [.Y, .Y] + expandOp(xs)
-    case .Z2: return [.Z, .Z] + expandOp(xs)
-    case .R_2: return [.R, .R] + expandOp(xs)
-    case .L_2: return [.L, .L] + expandOp(xs)
-    case .D_2: return [.D, .D] + expandOp(xs)
-    case .U_2: return [.U, .U] + expandOp(xs)
-    case .B_2: return [.B, .B] + expandOp(xs)
-    case .F_2: return [.F, .F] + expandOp(xs)
-    case .Y_2: return [.Y, .Y] + expandOp(xs)
-    case .Z_2: return [.Z, .Z] + expandOp(xs)
-    default: return [x] + expandOp(xs)
-    }
+    return expandOp_([], xxs_arg)
 }
 
 
@@ -473,42 +479,45 @@ func exchangeOp(_ xxs_arg: [Op]) -> [Op] {
 
 
 func reduceOp(_ xxs_arg: [Op]) -> [Op] {
-    var xxs = xxs_arg
-    if xxs.count == 0 { // length: 0
-        return []
-    }
-    let x = xxs.remove(at: 0)
-    let xs = xxs
-    if xxs.count == 0 { // length: 1
-        return [x]
-    }
-    let y = xxs.remove(at: 0) // length: >=2
-    let ys = xxs
-    if x == revOp(y) {
-        return reduceOp(ys)
-    }
-    if xxs.count >= 2 { // length: >=4
-        let z = xxs.remove(at: 0)
-        let zs = xxs
-        let w = xxs.remove(at: 0)
-        let ws = xxs
-        if x == y && y == z && z == w {
-            return reduceOp(ws)
-        } else if x == y && y == z {
-            return reduceOp([revOp(x)] + zs)
-        } else {
-            return [x] + reduceOp(xs)
+    func reduceOp_(_ acc_arg: [Op], _ xxs_arg: [Op]) -> [Op] {
+        var xxs = xxs_arg
+        if xxs.count == 0 { // length: 0
+            return acc_arg
         }
-    } else if xxs.count == 1 { // length: 3
-        let z = xxs.remove(at: 0)
-        if x == y && y == z {
-            return [revOp(x)]
-        } else {
-            return [x] + reduceOp(xs)
+        let x = xxs.remove(at: 0)
+        let xs = xxs
+        if xxs.count == 0 { // length: 1
+            return acc_arg + [x]
         }
-    } else { // length: 2, x != y
-        return xxs_arg
+        let y = xxs.remove(at: 0) // length: >=2
+        let ys = xxs
+        if x == revOp(y) {
+            return reduceOp_(acc_arg, ys)
+        }
+        if xxs.count >= 2 { // length: >=4
+            let z = xxs.remove(at: 0)
+            let zs = xxs
+            let w = xxs.remove(at: 0)
+            let ws = xxs
+            if x == y && y == z && z == w {
+                return reduceOp_(acc_arg, ws)
+            } else if x == y && y == z {
+                return reduceOp_(acc_arg, [revOp(x)] + zs)
+            } else {
+                return reduceOp_(acc_arg + [x], xs)
+            }
+        } else if xxs.count == 1 { // length: 3
+            let z = xxs.remove(at: 0)
+            if x == y && y == z {
+                return acc_arg + [revOp(x)]
+            } else {
+                return reduceOp_(acc_arg + [x], xs)
+            }
+        } else { // length: 2, x != y
+            return acc_arg + xxs_arg
+        }
     }
+    return reduceOp_([], xxs_arg)
 }
 
 
@@ -522,36 +531,39 @@ func iterOpt(_ f: ([Op]) -> [Op], _ l: [Op]) -> [Op] {
 }
 
 func mergeOp(_ xxs_arg: [Op]) -> [Op] {
-    var xxs = xxs_arg
-    if xxs.count == 0 { // length: 0
-        return []
+    func mergeOp_(_ acc_arg: [Op], _ xxs_arg: [Op]) -> [Op] {
+        var xxs = xxs_arg
+        if xxs.count == 0 { // length: 0
+            return acc_arg
+        }
+        let x = xxs.remove(at: 0)
+        let xs = xxs
+        if xxs.count == 0 { // length: 1
+            return acc_arg + [x]
+        }
+        let y = xxs.remove(at: 0)
+        let ys = xxs
+        switch (x, y) {
+        case (.U, .U): return mergeOp_(acc_arg + [.U2], ys)
+        case (.B, .B): return mergeOp_(acc_arg + [.B2], ys)
+        case (.F, .F): return mergeOp_(acc_arg + [.F2], ys)
+        case (.D, .D): return mergeOp_(acc_arg + [.D2], ys)
+        case (.L, .L): return mergeOp_(acc_arg + [.L2], ys)
+        case (.R, .R): return mergeOp_(acc_arg + [.R2], ys)
+        case (.Y, .Y): return mergeOp_(acc_arg + [.Y2], ys)
+        case (.Z, .Z): return mergeOp_(acc_arg + [.Z2], ys)
+        case (.U_, .U_): return mergeOp_(acc_arg + [.U2], ys)
+        case (.B_, .B_): return mergeOp_(acc_arg + [.B2], ys)
+        case (.F_, .F_): return mergeOp_(acc_arg + [.F2], ys)
+        case (.D_, .D_): return mergeOp_(acc_arg + [.D2], ys)
+        case (.L_, .L_): return mergeOp_(acc_arg + [.L2], ys)
+        case (.R_, .R_): return mergeOp_(acc_arg + [.R2], ys)
+        case (.Y_, .Y_): return mergeOp_(acc_arg + [.Y2], ys)
+        case (.Z_, .Z_): return mergeOp_(acc_arg + [.Z2], ys)
+        default: return mergeOp_(acc_arg + [x], xs)
+        }
     }
-    let x = xxs.remove(at: 0)
-    let xs = xxs
-    if xxs.count == 0 { // length: 1
-        return [x]
-    }
-    let y = xxs.remove(at: 0)
-    let ys = xxs
-    switch (x, y) {
-    case (.U, .U): return [.U2] + mergeOp(ys)
-    case (.B, .B): return [.B2] + mergeOp(ys)
-    case (.F, .F): return [.F2] + mergeOp(ys)
-    case (.D, .D): return [.D2] + mergeOp(ys)
-    case (.L, .L): return [.L2] + mergeOp(ys)
-    case (.R, .R): return [.R2] + mergeOp(ys)
-    case (.Y, .Y): return [.Y2] + mergeOp(ys)
-    case (.Z, .Z): return [.Z2] + mergeOp(ys)
-    case (.U_, .U_): return [.U2] + mergeOp(ys)
-    case (.B_, .B_): return [.B2] + mergeOp(ys)
-    case (.F_, .F_): return [.F2] + mergeOp(ys)
-    case (.D_, .D_): return [.D2] + mergeOp(ys)
-    case (.L_, .L_): return [.L2] + mergeOp(ys)
-    case (.R_, .R_): return [.R2] + mergeOp(ys)
-    case (.Y_, .Y_): return [.Y2] + mergeOp(ys)
-    case (.Z_, .Z_): return [.Z2] + mergeOp(ys)
-    default: return [x] + mergeOp(xs)
-    }
+    return mergeOp_([], xxs_arg)
 }
 
 func optimizeOp(_ l: [Op]) -> [Op] {
