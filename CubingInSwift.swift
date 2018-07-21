@@ -428,44 +428,47 @@ func expandOp(_ xxs_arg: [Op]) -> [Op] {
 
 
 func exchangeOp(_ xxs_arg: [Op]) -> [Op] {
-    var xxs = xxs_arg
-    if xxs.count == 0 { // length: 0
-        return []
+    func exchangeOp_(_ acc_arg: [Op], _ xxs_arg: [Op]) -> [Op] {
+        var xxs = xxs_arg
+        if xxs.count == 0 { // length: 0
+            return acc_arg
+        }
+        let x = xxs.remove(at: 0)
+        if xxs.count == 0 { // length: 1
+            return acc_arg + [x]
+        }
+        let y = xxs.remove(at: 0) // length: >=2
+        let xs = xxs
+        switch (x, y) {
+            // Y
+        case (.Y, .U): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y, .U_): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y_, .U): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y_, .U_): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y, .D): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y, .D_): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y_, .D): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y_, .D_): return exchangeOp_(acc_arg + [y], [x] + xs)
+                         // D
+        case (.D, .U): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.D, .U_): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.D_, .U): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.D_, .U_): return exchangeOp_(acc_arg + [y], [x] + xs)
+                         // B
+        case (.B, .F): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.B, .F_): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.B_, .F): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.B_, .F_): return exchangeOp_(acc_arg + [y], [x] + xs)
+                         // L
+        case (.L, .R): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.L, .R_): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.L_, .R): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.L_, .R_): return exchangeOp_(acc_arg + [y], [x] + xs)
+                         //
+        default: return exchangeOp_(acc_arg + [x], [y] + xs)
+        }
     }
-    let x = xxs.remove(at: 0)
-    if xxs.count == 0 { // length: 1
-        return [x]
-    }
-    let y = xxs.remove(at: 0) // length: >=2
-    let xs = xxs
-    switch (x, y) {
-        // Y
-    case (.Y, .U): return [y] + exchangeOp([x] + xs)
-    case (.Y, .U_): return [y] + exchangeOp([x] + xs)
-    case (.Y_, .U): return [y] + exchangeOp([x] + xs)
-    case (.Y_, .U_): return [y] + exchangeOp([x] + xs)
-    case (.Y, .D): return [y] + exchangeOp([x] + xs)
-    case (.Y, .D_): return [y] + exchangeOp([x] + xs)
-    case (.Y_, .D): return [y] + exchangeOp([x] + xs)
-    case (.Y_, .D_): return [y] + exchangeOp([x] + xs)
-                       // D
-    case (.D, .U): return [y] + exchangeOp([x] + xs)
-    case (.D, .U_): return [y] + exchangeOp([x] + xs)
-    case (.D_, .U): return [y] + exchangeOp([x] + xs)
-    case (.D_, .U_): return [y] + exchangeOp([x] + xs)
-                       // B
-    case (.B, .F): return [y] + exchangeOp([x] + xs)
-    case (.B, .F_): return [y] + exchangeOp([x] + xs)
-    case (.B_, .F): return [y] + exchangeOp([x] + xs)
-    case (.B_, .F_): return [y] + exchangeOp([x] + xs)
-                       // L
-    case (.L, .R): return [y] + exchangeOp([x] + xs)
-    case (.L, .R_): return [y] + exchangeOp([x] + xs)
-    case (.L_, .R): return [y] + exchangeOp([x] + xs)
-    case (.L_, .R_): return [y] + exchangeOp([x] + xs)
-                       //
-    default: return [x] + exchangeOp([y] + xs)
-    }
+    return exchangeOp_([], xxs_arg)
 }
 
 
