@@ -48,7 +48,7 @@ enum Op : String {
     case R2; case R_2 = "R'2"; case U2; case U_2 = "U'2"; case B2; case B_2 = "B'2"
     case L2; case L_2 = "L'2"; case F2; case F_2 = "F'2"; case D2; case D_2 = "D'2"
 //
-    case FstLayer; case SndLayer; case PLL1p 
+    case FstLayer; case SndLayer; case SndLayer2; case PLL1p 
     case PLL21p; case PLL22p; case PLL23p; case PLL24p; case PLL25p; case PLL26p
     case A2p; case A1p; case Tp; case U1p; case U2p; case Yp; case R2p
     case Zp; case R1p; case Hp; case G2p; case J2p; case G4p; case J1p 
@@ -366,6 +366,77 @@ func readSurface(_ q: Cube) -> [Op]? {
     }
 }
 
+func rotOp(_ mode: Op, _ op: Op) -> Op {
+    switch mode {
+    case .N: return op
+    case .Y:
+        switch op {
+        case .U: return op
+        case .L: return .F
+        case .R: return .B
+        case .F: return .R
+        case .B: return .L
+        case .D: return op
+        case .U_: return op
+        case .L_: return .F_
+        case .R_: return .B_
+        case .F_: return .R_
+        case .B_: return .L_
+        case .D_: return op
+        default: return op // error
+        }
+    case .Y_: 
+        switch op {
+        case .U: return op
+        case .L: return .B
+        case .R: return .F
+        case .F: return .L
+        case .B: return .R
+        case .D: return op
+        case .U_: return op
+        case .L_: return .B_
+        case .R_: return .F_
+        case .F_: return .L_
+        case .B_: return .R_
+        case .D_: return op
+        default: return op // error
+        }
+    case .Z:
+        switch op {
+        case .U: return .L
+        case .L: return .B
+        case .R: return .U
+        case .F: return op
+        case .B: return op
+        case .D: return .R
+        case .U_: return .L_
+        case .L_: return .B_
+        case .R_: return .U_
+        case .F_: return op
+        case .B_: return op
+        case .D_: return .R_
+        default: return op // error
+        }
+    case .Z_:
+        switch op {
+        case .U: return .R
+        case .L: return .U
+        case .R: return .B
+        case .F: return op
+        case .B: return op
+        case .D: return .L
+        case .U_: return .R_
+        case .L_: return .U_
+        case .R_: return .B_
+        case .F_: return op
+        case .B_: return op
+        case .D_: return .L_
+        default: return op // error
+        }
+    default: return op // error
+    }
+}
+
 func revOp(_ x: Op) -> Op {
     switch x {
     case .U: return .U_
@@ -455,6 +526,12 @@ func exchangeOp(_ xxs_arg: [Op]) -> [Op] {
         case (.Y, .D_): return exchangeOp_(acc_arg + [y], [x] + xs)
         case (.Y_, .D): return exchangeOp_(acc_arg + [y], [x] + xs)
         case (.Y_, .D_): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y, .FstLayer): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y_, .FstLayer): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y, .SndLayer): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y_, .SndLayer): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y, .SndLayer2): return exchangeOp_(acc_arg + [y], [x] + xs)
+        case (.Y_, .SndLayer2): return exchangeOp_(acc_arg + [y], [x] + xs)
                          // D
         case (.D, .U): return exchangeOp_(acc_arg + [y], [x] + xs)
         case (.D, .U_): return exchangeOp_(acc_arg + [y], [x] + xs)
@@ -521,15 +598,6 @@ func reduceOp(_ xxs_arg: [Op]) -> [Op] {
 }
 
 
-func iterOpt(_ f: ([Op]) -> [Op], _ l: [Op]) -> [Op] {
-    let l2 = f(l)
-    if l == l2 {
-        return l2
-    } else {
-        return iterOpt(f, l2)
-    }
-}
-
 func mergeOp(_ xxs_arg: [Op]) -> [Op] {
     func mergeOp_(_ acc_arg: [Op], _ xxs_arg: [Op]) -> [Op] {
         var xxs = xxs_arg
@@ -566,9 +634,55 @@ func mergeOp(_ xxs_arg: [Op]) -> [Op] {
     return mergeOp_([], xxs_arg)
 }
 
+func removeYZ(_ xxs_arg: [Op]) -> [Op] {
+    func removeYZ_(_ acc_arg: [Op], _ mode: Op, _ xxs_arg: [Op]) -> [Op] {
+        var xxs = xxs_arg
+        if xxs.count == 0 { // length: 0
+            if mode == .N {
+                return acc_arg
+            } else {
+                return acc_arg + [mode]
+            }
+        }
+        let x = xxs.remove(at: 0)
+        let xs = xxs
+        switch mode {
+        case .N: 
+            switch x {
+            case .Y: return removeYZ_(acc_arg, .Y, xs)
+            case .Y_: return removeYZ_(acc_arg, .Y_, xs)
+            case .Z: return removeYZ_(acc_arg, .Z, xs)
+            case .Z_: return removeYZ_(acc_arg, .Z_, xs)
+            default: return removeYZ_(acc_arg + [x], .N, xs)
+            }
+        default: if mode == revOp(x) {
+                     return removeYZ_(acc_arg, .N, xs)
+                 } else { // mode != .N
+                     switch x {
+                     case .Y: return removeYZ_(acc_arg + [x], mode, xs)
+                     case .Y_: return removeYZ_(acc_arg + [x], mode, xs)
+                     case .Z: return removeYZ_(acc_arg + [x], mode, xs)
+                     case .Z_: return removeYZ_(acc_arg + [x], mode, xs)
+                     default: return removeYZ_(acc_arg + [rotOp(mode, x)], mode, xs)
+                     }
+                 }
+        }
+    }
+    return removeYZ_([], .N, xxs_arg)
+}
+
 func optimizeOp(_ l: [Op]) -> [Op] {
+    func iterOpt(_ f: ([Op]) -> [Op], _ l: [Op]) -> [Op] {
+        let l2 = f(l)
+        if l == l2 {
+            return l2
+        } else {
+            return iterOpt(f, l2)
+        }
+    }
     var l = expandOp(l)
-    l = iterOpt(exchangeOp, l)
+//    l = iterOpt(exchangeOp, l)
+    l = iterOpt(removeYZ, l)
     l = iterOpt(reduceOp, l)
     l = mergeOp(l)
     return l
@@ -587,6 +701,7 @@ func solveQ(_ q: Cube) -> [Op] {
     pair = step(pair, {[.Y] + setYGR(.Y)($0.dupCube().turn(.Y)) + [.Y_]})
     pair = step(pair, {[.Y2] + setYGR(.Y2)($0.dupCube().turn(.Y2)) + [.Y2]})
     pair = step(pair, {[.Y_] + setYGR(.Y_)($0.dupCube().turn(.Y_)) + [.Y]})
+    pair = step(pair, {(_) in [.SndLayer2]})
     pair = step(pair, setGR(.N))
     pair = step(pair, {[.Y] + setGR(.Y)($0.dupCube().turn(.Y)) + [.Y_]})
     pair = step(pair, {[.Y2] + setGR(.Y2)($0.dupCube().turn(.Y2)) + [.Y2]})
@@ -640,10 +755,8 @@ func rotc(_ op:Op, _ c:Color) -> Color {
         return rotc(.Y, (rotc(.Y2, c)))
     default:
         return c
-    }
-            
+    }            
 }
-
 
 func setRY(_ tc: Op) -> (_ q: Cube) -> [Op] {
   func setRY2(_ q: Cube) -> [Op] {
@@ -895,8 +1008,12 @@ func prSeq(_ ops_arg: [Op]) -> String {
     var xs = ops_arg
     let x = xs.remove(at: 0)
 
-    if x == .FstLayer { return "First Layer -----\n " + prSeq(xs)
-    } else if x == .SndLayer { return "\nSecond Layer -----\n " + prSeq(xs)
+//    if x == .FstLayer { return "First Layer -----\n " + prSeq(xs)
+//    } else if x == .SndLayer { return "\nSecond Layer -----\n " + prSeq(xs)
+//    } else if x == .SndLayer2 { return "\nSecond Layer (2) -----\n " + prSeq(xs)
+    if x == .FstLayer { return "Cross at the Bottom -----\n " + prSeq(xs)
+    } else if x == .SndLayer { return "\nFirst Layer -----\n " + prSeq(xs)
+    } else if x == .SndLayer2 { return "\nSecond Layer -----\n " + prSeq(xs)
     } else if x == .PLL1p
                 || x == .PLL21p
                 || x == .PLL22p
