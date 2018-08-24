@@ -1283,9 +1283,13 @@ func solve_check_pat(_ str: String) {
     print(q_start.pr())
     print("Solution:")
 //    print(outs)
-    print(prSeq(outs))
-    print("Solved:")
-    print(q_start.dupCube().applySeq(outs).pr())
+    if q_start.dupCube().applySeq(outs).check() {
+        print(prSeq(outs))
+        print("Solved:")
+        print(q_start.dupCube().applySeq(outs).pr())
+    } else {
+        print("Could not solve... Illegal configuration ?")
+    }
 }
 
 func first_effective_op(_ ops_arg: [Op]) -> ([Op], [Op]) {
