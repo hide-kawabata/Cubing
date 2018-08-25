@@ -692,7 +692,8 @@ func optimizeOp(_ l: [Op]) -> [Op] {
 // solver
 func solveQ(_ q: Cube) -> [Op] {
     var pair = (q, [Op.FstLayer])
-    pair = step(pair, setRY(.N))
+//    pair = step(pair, setRY(.N))
+    pair = step(pair, setRY_destructive(.N))
     pair = step(pair, {[.Y] + setRY(.Y)($0.dupCube().turn(.Y)) + [.Y_]})
     pair = step(pair, {[.Y2] + setRY(.Y2)($0.dupCube().turn(.Y2)) + [.Y2]})
     pair = step(pair, {[.Y_] + setRY(.Y_)($0.dupCube().turn(.Y_)) + [.Y]})
@@ -803,6 +804,50 @@ func setRY(_ tc: Op) -> (_ q: Cube) -> [Op] {
   return setRY2
 }
 
+func setRY_destructive(_ tc: Op) -> (_ q: Cube) -> [Op] {
+  func setRY2(_ q: Cube) -> [Op] {
+    let sr = q.r.getColor
+    let sy = q.y.getColor
+    let sb = q.b.getColor
+    let sw = q.w.getColor
+    let sg = q.g.getColor
+    let so = q.o.getColor
+    let yellow = rotc(tc, .Yellow)
+    let red = rotc(tc, .Red)
+
+    if sr(2) == red && sy(6) == yellow { return []
+//
+    } else if sr(2) == yellow && sy(6) == red { return [.F_, .R_, .D_] // [.F_, .D, .R_, .D_]
+    } else if sr(4) == yellow && sb(8) == red { return [.R_, .D_] // [.D, .R_, .D_]
+    } else if sr(4) == red && sb(8) == yellow { return [.F]
+    } else if sr(6) == red && sw(2) == yellow { return [.F, .F]
+    } else if sr(6) == yellow && sw(2) == red { return [.U_, .R_, .F] // [.U_, .R_, .F, .R]
+    } else if sr(8) == yellow && sg(4) == red { return [.L, .D] // [.D_, .L, .D]
+    } else if sr(8) == red && sg(4) == yellow { return [.F_]
+//
+    } else if sb(2) == red && sy(4) == yellow { return [.D_] // [.R, .D, .R_, .D_]
+    } else if sb(2) == yellow && sy(4) == red { return [.R, .F]
+    } else if sb(4) == yellow && so(8) == red { return [.B, .U, .U, .F, .F] // [.B, .U, .U, .B_, .F, .F]
+    } else if sb(4) == red && so(8) == yellow { return [.R, .D_] // [.R_, .U, .R, .F, .F]
+    } else if sb(6) == red && sw(4) == yellow { return [.U, .F, .F]
+    } else if sb(6) == yellow && sw(4) == red { return [.R_, .F] // [.R_, .F, .R]
+//
+    } else if so(2) == red && sy(2) == yellow { return [.D_, .D_] // [.B, .B, .U, .U, .F, .F]
+    } else if so(2) == yellow && sy(2) == red { return [.B, .R, .D_] // [.B, .B, .U, .R_, .F, .R]
+    } else if so(4) == yellow && sg(8) == red { return [.L_, .D] // [.L, .U_, .L_, .F, .F]
+    } else if so(4) == red && sg(8) == yellow { return [.B, .D, .D] // [.B_, .U_, .B, .U_, .F, .F]
+    } else if so(6) == red && sw(6) == yellow { return [.U, .U, .F, .F]
+    } else if so(6) == yellow && sw(6) == red { return [.U_, .L, .F_] // [.U_, .L, .F_, .L_]
+//
+    } else if sg(2) == red && sy(8) == yellow { return [.D] // [.L_, .D_, .L, .D]
+    } else if sg(2) == yellow && sy(8) == red { return [.L_, .F_]
+    } else if sg(6) == red && sw(8) == yellow { return [.U_, .F, .F]
+    } else if sg(6) == yellow && sw(8) == red { return [.L, .F_] // [.L, .F_, .L_]
+    } else { return [.U] // error_setRY
+    }
+  }
+  return setRY2
+}
 
 func setYGR(_ tc: Op) -> (_ q: Cube) -> [Op] {
   func setYGR2(_ q: Cube) -> [Op] {
@@ -1046,6 +1091,47 @@ func prSeq(_ ops_arg: [Op]) -> String {
     }
 }
 
+func countSteps(_ ops_arg: [Op]) -> Int {
+    func countSteps_(_ ops_arg: [Op], _ acc: Int) -> Int {
+        if ops_arg.count == 0 { return acc }
+        var xs = ops_arg
+        let x = xs.remove(at: 0)
+        if x == .FstLayer { return countSteps_(xs, acc) }
+        else if x == .SndLayer { return countSteps_(xs, acc) }
+        else if x == .SndLayer2 { return countSteps_(xs, acc) }
+        else if x == .PLL1p
+                || x == .PLL21p
+                || x == .PLL22p
+                || x == .PLL23p 
+                || x == .PLL24p
+                || x == .PLL25p 
+                || x == .PLL26p { return countSteps_(xs, acc) }
+        else if x == .A2p 
+                || x == .A1p 
+                || x == .Tp 
+                || x == .U1p 
+                || x == .U2p
+                || x == .Yp
+                || x == .R2p
+                || x == .Zp 
+                || x == .R1p
+                || x == .Hp 
+                || x == .G2p
+                || x == .J2p
+                || x == .G4p
+                || x == .J1p
+                || x == .G1p
+                || x == .G3p
+                || x == .Fp
+                || x == .Vp 
+                || x == .N2p
+                || x == .N1p
+                || x == .Ep { return countSteps_(xs, acc) }
+        else { return countSteps_(xs, acc + 1) }
+    }
+    return countSteps_(ops_arg, 0)
+}
+
 
 
 class Surface {
@@ -1284,6 +1370,7 @@ func solve_check_pat(_ str: String) {
     print("Solution:")
 //    print(outs)
     if q_start.dupCube().applySeq(outs).check() {
+        print("number of steps = \(countSteps(outs))")
         print(prSeq(outs))
         print("Solved:")
         print(q_start.dupCube().applySeq(outs).pr())
