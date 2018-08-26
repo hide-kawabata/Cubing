@@ -692,11 +692,18 @@ func optimizeOp(_ l: [Op]) -> [Op] {
 // solver
 func solveQ(_ q: Cube) -> [Op] {
     var pair = (q, [Op.FstLayer])
-//    pair = step(pair, setRY(.N))
+    pair = step(pair, setRY_tryD)
+    pair = step(pair, arrangeNeedles)
     pair = step(pair, setRY_destructive(.N))
+    pair = step(pair, setRY(.N))
     pair = step(pair, {[.Y] + setRY(.Y)($0.dupCube().turn(.Y)) + [.Y_]})
     pair = step(pair, {[.Y2] + setRY(.Y2)($0.dupCube().turn(.Y2)) + [.Y2]})
     pair = step(pair, {[.Y_] + setRY(.Y_)($0.dupCube().turn(.Y_)) + [.Y]})
+    pair = step(pair, {(_) in [.SndLayer]})
+    pair = step(pair, setYGRGR(.N))
+    pair = step(pair, {[.Y] + setYGRGR(.Y)($0.dupCube().turn(.Y)) + [.Y_]})
+    pair = step(pair, {[.Y2] + setYGRGR(.Y2)($0.dupCube().turn(.Y2)) + [.Y2]})
+    pair = step(pair, {[.Y_] + setYGRGR(.Y_)($0.dupCube().turn(.Y_)) + [.Y]})
     pair = step(pair, {(_) in [.SndLayer]})
     pair = step(pair, setYGR(.N))
     pair = step(pair, {[.Y] + setYGR(.Y)($0.dupCube().turn(.Y)) + [.Y_]})
@@ -804,8 +811,85 @@ func setRY(_ tc: Op) -> (_ q: Cube) -> [Op] {
   return setRY2
 }
 
+
+func setRY_tryD(_ q: Cube) -> [Op] {
+  func countRight(_ op: Op, _ q: Cube) -> Int {
+    let sr = q.r.getColor
+    let sy = q.y.getColor
+    let sb = q.b.getColor
+    let sg = q.g.getColor
+    let so = q.o.getColor
+    let yellow = rotc(op, .Yellow)
+    let red = rotc(op, .Red)
+    let green = rotc(op, .Green)
+    let blue = rotc(op, .Blue)
+    let orange = rotc(op, .Orange)
+    var count = 0
+    if (sr(2) == red && sy(6) == yellow) { count = count + 1 }
+    if (sb(2) == blue && sy(4) == yellow) { count = count + 1 }
+    if (so(2) == orange && sy(2) == yellow) { count = count + 1 }
+    if (sg(2) == green && sy(8) == yellow) { count = count + 1 }
+    return count
+  }
+  func setRY2(_ tc: Op, _ q: Cube) -> [Op] {
+    if countRight(tc, q) > 0 { return [] }
+    let sy = q.y.getColor
+    let sb = q.b.getColor
+    let sg = q.g.getColor
+    let so = q.o.getColor
+    let yellow = rotc(tc, .Yellow)
+    let red = rotc(tc, .Red)
+    if sb(2) == red && sy(4) == yellow { return [.D_]
+    } else if so(2) == red && sy(2) == yellow { return [.D, .D]
+    } else if sg(2) == red && sy(8) == yellow { return [.D]
+    } else { return []
+    }
+  }
+  let opsR = setRY2(.N, q)
+  if opsR != [] { return opsR }
+  let opsB = setRY2(.Y, q.dupCube().turn(.Y))
+  if opsB != [] { return [.Y] + opsB + [.Y_] }
+  let opsO = setRY2(.Y2, q.dupCube().turn(.Y2))
+  if opsO != [] { return [.Y2] + opsO + [.Y2] }
+  let opsG = setRY2(.Y_, q.dupCube().turn(.Y_))
+  if opsG != [] { return [.Y_] + opsO + [.Y] }
+
+  return []
+}
+
+
 func setRY_destructive(_ tc: Op) -> (_ q: Cube) -> [Op] {
+    func countRight(_ op: Op, _ q: Cube) -> Int {
+        let sr = q.r.getColor
+        let sy = q.y.getColor
+        let sb = q.b.getColor
+//        let sw = q.w.getColor
+        let sg = q.g.getColor
+        let so = q.o.getColor
+        let yellow = rotc(op, .Yellow)
+        let red = rotc(op, .Red)
+        let green = rotc(op, .Green)
+        let blue = rotc(op, .Blue)
+        let orange = rotc(op, .Orange)
+//        let white = rotc(op, .White)
+        var count = 0
+        if (sr(2) == red && sy(6) == yellow) {
+            count = count + 1
+        }
+        if (sb(2) == blue && sy(4) == yellow) {
+            count = count + 1
+        }
+        if (so(2) == orange && sy(2) == yellow) {
+            count = count + 1
+        }
+        if (sg(2) == green && sy(8) == yellow) {
+            count = count + 1
+        }
+        return count
+    }
   func setRY2(_ q: Cube) -> [Op] {
+      if countRight(tc, q) > 0 { return [] }
+
     let sr = q.r.getColor
     let sy = q.y.getColor
     let sb = q.b.getColor
@@ -846,8 +930,193 @@ func setRY_destructive(_ tc: Op) -> (_ q: Cube) -> [Op] {
     } else { return [.U] // error_setRY
     }
   }
+
   return setRY2
 }
+
+func setRY_destructive_limited(_ tc: Op) -> (_ q: Cube) -> [Op] {
+  func setRY2(_ q: Cube) -> [Op] {
+    let sr = q.r.getColor
+    let sy = q.y.getColor
+    let sb = q.b.getColor
+    let sw = q.w.getColor
+    let sg = q.g.getColor
+//    let so = q.o.getColor
+    let yellow = rotc(tc, .Yellow)
+    let red = rotc(tc, .Red)
+
+    if sr(2) == red && sy(6) == yellow { return []
+    } else if sr(4) == red && sb(8) == yellow { return [.F]
+    } else if sr(6) == red && sw(2) == yellow { return [.F, .F]
+    } else if sr(8) == red && sg(4) == yellow { return [.F_]
+    } else { return [] // error_setRY
+    }
+  }
+  return setRY2
+}
+
+
+func arrangeNeedles(_ q: Cube) -> [Op] {
+    func countRight(_ op: Op, _ q: Cube) -> Int {
+        let sr = q.r.getColor
+        let sy = q.y.getColor
+        let sb = q.b.getColor
+        let sg = q.g.getColor
+        let so = q.o.getColor
+        let yellow = rotc(op, .Yellow)
+        let red = rotc(op, .Red)
+        let green = rotc(op, .Green)
+        let blue = rotc(op, .Blue)
+        let orange = rotc(op, .Orange)
+        var count = 0
+        if (sr(2) == red && sy(6) == yellow) {
+            count = count + 1
+        }
+        if (sb(2) == blue && sy(4) == yellow) {
+            count = count + 1
+        }
+        if (so(2) == orange && sy(2) == yellow) {
+            count = count + 1
+        }
+        if (sg(2) == green && sy(8) == yellow) {
+            count = count + 1
+        }
+        return count
+    }
+    func countNeedles(_ op: Op, _ q: Cube) -> Int {
+        let sr = q.r.getColor
+        let sy = q.y.getColor
+        let sb = q.b.getColor
+        let sw = q.w.getColor
+        let sg = q.g.getColor
+        let so = q.o.getColor
+        let yellow = rotc(op, .Yellow)
+        let red = rotc(op, .Red)
+        let green = rotc(op, .Green)
+        let blue = rotc(op, .Blue)
+        let orange = rotc(op, .Orange)
+        var count = 0
+        if (sr(2) == red && sy(6) == yellow
+              || sr(4) == red && sb(8) == yellow
+              || sr(6) == red && sw(2) == yellow
+              || sr(8) == red && sg(4) == yellow) {
+            count = count + 1
+        }
+        if (sb(2) == blue && sy(4) == yellow
+              || sb(4) == blue && so(8) == yellow
+              || sb(6) == blue && sw(4) == yellow
+              || sb(8) == blue && sr(4) == yellow) {
+            count = count + 1
+        }
+        if (so(2) == orange && sy(2) == yellow
+              || so(4) == orange && sg(8) == yellow
+              || so(6) == orange && sw(6) == yellow
+              || so(8) == orange && sb(4) == yellow) {
+            count = count + 1
+        }
+        if (sg(2) == green && sy(8) == yellow
+              || sg(4) == green && sr(8) == yellow
+              || sg(6) == green && sw(8) == yellow
+              || sg(8) == green && so(4) == yellow) {
+            count = count + 1
+        }
+        return count
+    }
+
+    func check1Face(_ op: Op, _ q: Cube) -> ([Op], Cube) {
+        let count0 = countNeedles(op, q)
+        let o1 = setRY_destructive_limited(op)(q)
+        let q1 = q.dupCube().applySeq(o1)
+        let count1 = countNeedles(op, q1)
+        if count0 <= count1 { 
+//            print("check1Face:OK \(o1)")
+            return (o1, q1)
+        } else {
+//            print("check1Face:NG")
+            return ([], q)
+        }
+    }
+
+    func iterArrangeNeedles(_ ops: [Op], _ q: Cube) -> ([Op], Cube) {
+//        print("countNeedles=\(countNeedles(.N, q))")
+        if countNeedles(.N, q) - countRight(.N, q) == 0 { return (ops, q) }
+        else {
+            let (ops_, _) = check1Face(.N, q)
+            let ops1 = ops + ops_
+            let q0 = q.dupCube().applySeq(ops_)
+//            print(q0.pr())
+            let (ops1_, _) = check1Face(.Y, q0.dupCube().turn(.Y))
+            let ops2 = ops1 + [.Y] + ops1_ + [.Y_]
+            let q1 = q0.dupCube().applySeq([.Y] + ops1_ + [.Y_])
+//            print(q1.pr())
+            let (ops2_, _) = check1Face(.Y2, q1.dupCube().turn(.Y2))
+            let ops3 = ops2 + [.Y2] + ops2_ + [.Y2]
+            let q2 = q1.dupCube().applySeq([.Y2] + ops2_ + [.Y2])
+//            print(q2.pr())
+            let (ops3_, _) = check1Face(.Y_, q2.dupCube().turn(.Y_))
+            let ops4 = ops3 + [.Y_] + ops3_ + [.Y]
+            let q3 = q2.dupCube().applySeq([.Y_] + ops3_ + [.Y])
+//            print(q3.pr())
+            return iterArrangeNeedles(ops4, q3)
+        }
+    }
+    
+    let (ops, _) = iterArrangeNeedles([], q.dupCube())
+//    print("(arrangeNeedles)")
+//    print(ops)
+    return ops
+}
+
+
+func setYGRGR(_ tc: Op) -> (_ q: Cube) -> [Op] {
+  func checkYGRGR(_ tc:Op, _ q: Cube) -> Bool {
+    let sr = q.r.getColor
+    let sg = q.g.getColor
+    let green = rotc(tc, .Green)
+    let red = rotc(tc, .Red)
+    if sr(8) == red && sr(1) == red
+         && sg(4) == green && sg(3) == green {
+        return true
+    } else {
+        return false
+    }
+  }
+  func setYGRGR2(_ q: Cube) -> [Op] {
+    var ops: [Op] = []
+    if checkYGRGR(tc, q) { return ops }
+    ops = [.F, .U_, .F_]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.U] + [.F, .U_, .F_]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.U, .U] + [.F, .U_, .F_]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.U_] + [.F, .U_, .F_]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.L_, .U, .L]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.U] + [.L_, .U, .L]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.U, .U] + [.L_, .U, .L]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.U_] + [.L_, .U, .L]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.L, .U, .L_] + [.U_] + [.F, .U_, .F_]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.B, .U, .B_] + [.U, .U] + [.F, .U_, .F_]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.R, .U, .R_] + [.U] + [.F, .U_, .F_]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.L, .U_, .L_] + [.L_, .U, .L]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.B, .U_, .B_] + [.U_] + [.L_, .U, .L]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    ops = [.R, .U_, .R_] + [.U_, .U_] + [.L_, .U, .L]
+    if checkYGRGR(tc, q.dupCube().applySeq(ops)) { return ops }
+    return []
+  }
+  return setYGRGR2
+}
+
 
 func setYGR(_ tc: Op) -> (_ q: Cube) -> [Op] {
   func setYGR2(_ q: Cube) -> [Op] {
@@ -1019,7 +1288,10 @@ func nineToFinish(_ q: Cube) -> [Op] {
     } else if  r5 == r7 && r5 == g6 && r6 == g5 && g7 != g5 { // R1
         return [.R1p] + [.L, .U, .U, .L_, .U, .U, .L, .F_, .L_, .U_, .L, .U, .L, .F, .L_, .L_, .U]
     } else if  r5 == r7 && b5 == b7 && r5 == o6 && b5 == g6 { // H
-        return [.Hp] + [.M, .M, .U_, .M, .M, .U_, .U_, .M, .M, .U_, .M, .M]
+//        return [.Hp] + [.R_, .R_, .L, .L, .D_, .R_, .R_, .L, .L, .U_, .U_, .R_, .R_, .L, .L, .D_, .R_, .R_, .L, .L]
+        return [.Hp] + [.R, .U_, .R, .U, .R, .U, .R, .U_, .R_, .U_, .R_, .R_]
+          + [.U] + [.R, .U_, .R, .U, .R, .U, .R, .U_, .R_, .U_, .R_, .R_]
+          + [.U_] // H = U2+[U]+U2+[U']
     } else if  r5 == r6 && g5 == g7 && g7 == b6 && b7 == g6 { // G1
         return [.G1p] + [.R, .R, .D, .Y, .R_, .U, .R_, .U_, .R, .D_, .Y_, .R_, .R_, .F_, .U, .F]
     } else if  r5 == r6 && r6 == o7 && g5 == g6 && g6 == g7 { // J2
@@ -1356,10 +1628,21 @@ func solve_check(_ str: String) {
     print("Scrambled:")
     print(q_start.pr())
     print("Solution:")
+    print("number of steps = \(countSteps(outs))")
 //    print(outs)
     print(prSeq(outs))
     print("Solved:")
     print(q_start.dupCube().applySeq(outs).pr())
+}
+
+func applyAndPrint(_ ops_arg: [Op], _ q: Cube) {
+    var ops = ops_arg
+    if ops.count == 0 {return}
+    let op = ops.remove(at: 0)
+    let _ = q.turn(op)
+    print(op)
+    print(q.pr())
+    return applyAndPrint(ops, q)
 }
 
 func solve_check_pat(_ str: String) {
@@ -1376,6 +1659,10 @@ func solve_check_pat(_ str: String) {
         print(q_start.dupCube().applySeq(outs).pr())
     } else {
         print("Could not solve... Illegal configuration ?")
+//        print(q_start.dupCube().applySeq(outs).pr())
+//        applyAndPrint(outs, q_start.dupCube())
+//        print("----------------------")
+//        applyAndPrint(revOps(outs), q_start.dupCube().applySeq(outs))
     }
 }
 
